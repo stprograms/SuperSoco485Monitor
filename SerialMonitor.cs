@@ -13,7 +13,8 @@ public class SerialMonitor
     private readonly uint delayMS;
     private SerialPort port;
     private Timer timer;
-    
+    private Stream? rawStream;
+
 
     const uint DEFAULT_DELAY_MS = 10;
 
@@ -47,6 +48,10 @@ public class SerialMonitor
 
         watch.Start();
         timer.Change(0, this.delayMS);
+
+        // open raw file for output
+        FileInfo rawFile = new($"raw_{new DateTime().ToFileTime()}.bin");
+        this.rawStream = rawFile.Create();
     }
 
     /// <summary>
@@ -58,6 +63,11 @@ public class SerialMonitor
         port.Close();
         timer.Change(System.Threading.Timeout.Infinite,
             System.Threading.Timeout.Infinite);
+
+        if (this.rawStream != null)
+        {
+            this.rawStream.Close();
+        }
     }
 
     /// <summary>
@@ -83,6 +93,11 @@ public class SerialMonitor
             {
                 byte b = (byte)monitor.port.ReadByte();
                 output.AppendFormat(" {0:2X}", b);
+
+                if (monitor.rawStream != null)
+                {
+                    monitor.rawStream.WriteByte(b);
+                }
             }
             output.AppendLine();
 

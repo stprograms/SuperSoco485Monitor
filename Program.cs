@@ -38,6 +38,20 @@ if (cfg["delayMS"] != null)
     delayMS = uint.Parse(cfg["delayMS"]!);
 }
 
+
+TelegramParser parser = new();
+parser.NewTelegram += (tel) =>
+{
+    //log.Info(Convert.ToHexString(tel));
+    System.Text.StringBuilder hex = new();
+    foreach (byte b in tel)
+        hex.AppendFormat("{0:X2} ", b);
+    log.Info(hex);
+};
+
+parser.ParseFile(@"C:\Users\akurzmann\Desktop\suso_trace3.bin");
+
+#if false
 SerialMonitor monitor = new(port, delayMS);
 
 // Register CTRL+C
@@ -61,3 +75,4 @@ catch (System.IO.IOException ex)
 
 
 while (true) { }
+#endif
