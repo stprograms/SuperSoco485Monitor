@@ -15,6 +15,8 @@ public class SerialMonitor
     private Timer timer;
     private Stream? rawStream;
 
+    public String? OutputDir = null;
+
 
     const uint DEFAULT_DELAY_MS = 10;
 
@@ -32,7 +34,7 @@ public class SerialMonitor
         // Initialize the comport
         port = new(comPort);
 
-        //initilize timer
+        // initilize timer
         timer = new(readSerial, this, System.Threading.Timeout.Infinite, this.delayMS);
     }
 
@@ -50,7 +52,12 @@ public class SerialMonitor
         timer.Change(0, this.delayMS);
 
         // open raw file for output
-        FileInfo rawFile = new($"raw_{new DateTime().ToFileTime()}.bin");
+        String filePath = "";
+        if (OutputDir != null)
+            filePath = OutputDir + "\\";
+        filePath += $"raw_{new DateTime().ToFileTime()}.bin";
+
+        FileInfo rawFile = new(filePath);
         this.rawStream = rawFile.Create();
     }
 
