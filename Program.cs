@@ -1,7 +1,9 @@
 ﻿using NLog;
 using NLog.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using CommandLine;
 
+// Configuration
 var config = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .Build();
@@ -10,69 +12,86 @@ var sec = config.GetSection("NLog");
 LogManager.Configuration = new NLogLoggingConfiguration(sec);
 NLog.Logger log = LogManager.GetCurrentClassLogger();
 
-var cfg = config.GetSection("Monitor");
+Configuration cfg = new(config.GetSection("Monitor"));
 
-log.Info($"Starting Serial Monitor on port {cfg["port"]}");
-
-string port;
-uint? delayMS = null;
-
-if (cfg == null)
+// Commandline parser
+String? parseFile = null;
+foreach (String s in args)
 {
-    log.Error("Missing configuration");
-    return;
+    log.Debug(s);
 }
 
-if (cfg["port"] == null)
+Parser.Default.ParseArguments<CmdOptions>(args)
+    .WithParsed<CmdOptions>(o =>
+    {
+        if (o.InputFile != null)
+        {
+            parseFile = o.InputFile;
+        }
+    });
+
+
+// Select execution
+if (parseFile != null)
 {
-    log.Error("ComPort is not specified");
-    return;
+    ReadLocalFile(parseFile);
 }
 else
 {
-    port = cfg["port"]!;
-}
-
-if (cfg["delayMS"] != null)
-{
-    delayMS = uint.Parse(cfg["delayMS"]!);
+    StartMonitor(cfg);
 }
 
 
-TelegramParser parser = new();
-parser.NewTelegram += (tel) =>
+/// <summary>
+/// Read a local file and parse it
+/// </summary>
+void ReadLocalFile(String file)
 {
-    //log.Info(Convert.ToHexString(tel));
-    System.Text.StringBuilder hex = new();
-    foreach (byte b in tel)
-        hex.AppendFormat("{0:X2} ", b);
-    log.Info(hex);
-};
+    TelegramParser parser = new();
 
-parser.ParseFile(@"C:\Users\akurzmann\Desktop\suso_trace3.bin");
+    // Register new telegram handler 
+    parser.NewTelegram += (tel) =>
+    {
+        System.Text.StringBuilder hex = new(tel.Length * 3);
 
-#if false
-SerialMonitor monitor = new(port, delayMS);
+        foreach (byte b in tel)
+            hex.AppendFormat("{0:X2} ", b);
 
-// Register CTRL+C
-Console.CancelKeyPress += delegate
-{
-    log.Info("Exiting");
-    monitor.Stop();
-};
+        log.Info(hex);
+    };
 
-
-// Start reading monitor
-try
-{
-    monitor.Start();
-}
-catch (System.IO.IOException ex)
-{
-    log.Fatal(ex, "Could not start monitor");
-    return;
+    // Parse the file
+    parser.ParseFile(file);
 }
 
 
-while (true) { }
-#endif
+/// <summary>
+/// Start the serial monitor
+/// </summary>
+void StartMonitor(Configuration cfg)
+{
+    log.Info($"Starting Serial Monitor on port {cfg.ComPort}");
+
+    SerialMonitor monitor = new(cfg.ComPort, cfg.DelayMS);
+
+    // Register CTRL+C
+    Console.CancelKeyPress += delegate
+    {
+        log.Info("Exiting");
+        monitor.Stop();
+    };
+
+    // Start reading monitor
+    try
+    {
+        monitor.Start();
+    }
+    catch (System.IO.IOException ex)
+    {
+        log.Fatal(ex, "Could not start monitor");
+        return;
+    }
+
+    // Endless loop
+    while (true) { }
+}
