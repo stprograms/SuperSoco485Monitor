@@ -52,12 +52,21 @@ void ReadLocalFile(String file)
     // Register new telegram handler 
     parser.NewTelegram += (tel) =>
     {
-        System.Text.StringBuilder hex = new(tel.Length * 3);
+        /*System.Text.StringBuilder hex = new(tel.Length * 3);
 
         foreach (byte b in tel)
             hex.AppendFormat("{0:X2} ", b);
 
-        log.Info(hex);
+        log.Info(hex);*/
+
+        BaseTelegram t = new(tel);
+        if (t.Source == 0xAA && t.Destination == 0x5A && t.PDU.Length == 10)
+        {
+            BatteryStatus bs = new(t);
+            log.Info(bs);
+        } else{
+            log.Info(t);
+        }
     };
 
     // Parse the file
