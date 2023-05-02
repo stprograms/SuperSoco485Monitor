@@ -73,6 +73,10 @@ void StartMonitor(Configuration cfg)
     log.Info($"Starting Serial Monitor on port {cfg.ComPort}");
 
     SerialMonitor monitor = new(cfg.ComPort, cfg.DelayMS);
+    if (cfg.OutputDir != null)
+    {
+        monitor.OutputDir = cfg.OutputDir;
+    }
 
     // Register CTRL+C
     Console.CancelKeyPress += delegate

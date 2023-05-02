@@ -55,7 +55,7 @@ public class SerialMonitor
         String filePath = "";
         if (OutputDir != null)
             filePath = OutputDir + "\\";
-        filePath += $"raw_{new DateTime().ToFileTime()}.bin";
+        filePath += $"raw_{DateTime.Now.ToString("yyyyMMdd'_'HHmmss")}.bin";
 
         FileInfo rawFile = new(filePath);
         this.rawStream = rawFile.Create();
@@ -99,14 +99,13 @@ public class SerialMonitor
             for (int i = 0; i < monitor.port.BytesToRead; ++i)
             {
                 byte b = (byte)monitor.port.ReadByte();
-                output.AppendFormat(" {0:2X}", b);
+                output.AppendFormat(" {0:X2}", b);
 
                 if (monitor.rawStream != null)
                 {
                     monitor.rawStream.WriteByte(b);
                 }
             }
-            output.AppendLine();
 
             // Print to nlog
             log.Info(output.ToString());
