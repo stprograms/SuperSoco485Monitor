@@ -50,8 +50,8 @@ public class BatteryStatus : BaseTelegram
         Charge = t.PDU[3];
         // if charge is bigger than 100, divide through 10 then
         if (Charge >= 100) Charge /= 10.0;
-        Cycles = (UInt16)((t.PDU[4] << 8) + t.PDU[5]);
-        switch (t.PDU[6])
+        Cycles = (UInt16)((t.PDU[6] << 8) + t.PDU[7]);
+        switch (t.PDU[9])
         {
             case 0:
                 Charging = false;
@@ -63,7 +63,7 @@ public class BatteryStatus : BaseTelegram
 
             default:
                 Charging = false;
-                log.Trace($"Charging: 0x{t.PDU[6]:X2}");
+                log.Trace($"Charging: 0x{t.PDU[9]:X2}");
                 break;
         }
     }
@@ -71,6 +71,6 @@ public class BatteryStatus : BaseTelegram
     public override string ToString()
     {
         log.Debug(base.ToString());
-        return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x";
+        return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, Charging: {Charging}";
     }
 }
