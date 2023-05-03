@@ -64,7 +64,13 @@ void ReadLocalFile(String file)
         {
             BatteryStatus bs = new(t);
             log.Info(bs);
-        } else{
+        } 
+        else if (t.Source == 0xAA && t.Destination == 0xDA && t.PDU.Length == 10)
+        {
+            ECUStatus es = new(t);
+            log.Info(es);
+        }
+        else{
             log.Info(t);
         }
     };

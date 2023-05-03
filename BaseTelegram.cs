@@ -49,6 +49,7 @@ public class BaseTelegram
     /// End byte of the telegram
     /// </summary>
     private const byte END_TELEGRAM = 0x0D;
+
     #endregion
 
     protected BaseTelegram()
@@ -56,6 +57,16 @@ public class BaseTelegram
         Start = new byte[2];
         PDU = new byte[1];
         Raw = new byte[1];
+    }
+
+    /// <summary>
+    /// Copy constructor
+    /// </summary>
+    /// <param name="c">Object to copy from</param>
+    protected BaseTelegram(BaseTelegram c)
+    : this(c.Raw)
+    {
+
     }
 
     public BaseTelegram(byte[] rawData)
@@ -80,9 +91,16 @@ public class BaseTelegram
         // Todo verify checksum
 
         // Check end telegram
-        if (rawData[5 + 1 + dataLen] != END_TELEGRAM)
+        try
         {
-            log.Warn("RawData does not hold Endtag");
+            if (rawData[5 + 1 + dataLen] != END_TELEGRAM)
+            {
+                log.Warn("RawData does not hold Endtag");
+            }
+        }
+        catch (IndexOutOfRangeException)
+        {
+            log.Warn("Rawdata does not contain End tag");
         }
 
         // Copy raw data

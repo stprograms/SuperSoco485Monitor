@@ -20,7 +20,7 @@ public class BatteryStatus : BaseTelegram
     /// <summary>
     /// Current Charge or Discharge in Amps
     /// </summary>
-    public byte Charge { get; }
+    public double Charge { get; }
     /// <summary>
     /// Total number of charging cycles
     /// </summary>
@@ -37,6 +37,7 @@ public class BatteryStatus : BaseTelegram
     /// <param name="t">Raw telegram</param>
     /// <exception cref="ArgumentException"></exception>
     public BatteryStatus(BaseTelegram t)
+    : base(t)
     {
         if (t.PDU.Length != 10)
         {
@@ -47,6 +48,8 @@ public class BatteryStatus : BaseTelegram
         SoC = t.PDU[1];
         Temperature = t.PDU[2];
         Charge = t.PDU[3];
+        // if charge is bigger than 100, divide through 10 then
+        if (Charge >= 100) Charge /= 10.0;
         Cycles = (UInt16)((t.PDU[4] << 8) + t.PDU[5]);
         switch (t.PDU[6])
         {
@@ -67,6 +70,7 @@ public class BatteryStatus : BaseTelegram
 
     public override string ToString()
     {
+        log.Debug(base.ToString());
         return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x";
     }
 }
