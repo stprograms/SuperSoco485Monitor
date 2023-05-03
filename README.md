@@ -1,7 +1,7 @@
 # SuperSoco485Monitor
 C# Application to monitor the communication on the internal RS485 Bus on Super Soco Motorcycles
 
-This small application is used for debug and analysis of the data received from the RS485 bus of Super Soco Motorcycles. It is not compatible with newer motorcycles that use CAN bus as the communication medium.
+This small application is used for debug and analysis of the data received from the RS485 bus of Super Soco Motorcycles. It is not compatible with newer motorcycles that use CAN bus as the communication medium. Since this application is a helper for first analysis, the code is more or less written quick and dirty.
 
 Information about the Baudrate, Structure of the telegrams and content of the telegrams has been derived from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) of [Xmanu12](https://github.com/Xmanu12).
 
@@ -34,6 +34,26 @@ There are two known combinations for the type:
 | ----: | :---- | ------------- |
 |  0xC5 | 0x5C  | Read request  |
 |  0xB6 | 0x6B  | Read response |
+
+## Checksum calculation
+The checksum byte is calculated by making an XOR calculation of the databytes and the length byte. The following C# example shall deepen the understanding how the checksum is calculated.
+
+```c#
+// dataLen holds the value of the length byte
+// rawData is a byte[] holding the raw data between the length byte and the checksum byte
+
+byte calcCheck = dataLen;
+foreach (byte b in rawData)
+{
+    calcCheck ^= b;
+}
+
+if (calcCheck == checksum)
+{
+    // Data is valid
+}
+
+```
 
 ## Decoded telegrams
 The following telegrams and packages of read responses are already decoded.

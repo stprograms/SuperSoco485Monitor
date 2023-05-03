@@ -37,6 +37,11 @@ public class BaseTelegram
     public byte Checksum { get; }
 
     public byte[] Raw { get; }
+    
+    /// <summary>
+    /// Are the raw data valid against the Checksum
+    /// </summary>
+    public bool IsValid { get; }
     #endregion
 
     #region Constants
@@ -50,6 +55,9 @@ public class BaseTelegram
     /// </summary>
     private const byte END_TELEGRAM = 0x0D;
 
+    private const byte POS_SRC = 2;
+    private const byte POS_DES = 3;
+    private const byte POS_LEN = 4;
     #endregion
 
     protected BaseTelegram()
@@ -73,22 +81,29 @@ public class BaseTelegram
     {
         Start = new byte[2];
         Array.Copy(rawData, Start, Start.Length);
-        Source = rawData[2];
-        Destination = rawData[3];
+        Source = rawData[POS_SRC];
+        Destination = rawData[POS_DES];
 
         // Read data
-        byte dataLen = rawData[4];
+        byte dataLen = rawData[POS_LEN];
         if (dataLen > MAX_DATA_LEN)
         {
             throw new ArgumentException("Invalid data len");
         }
         PDU = new byte[dataLen];
-        Array.Copy(rawData, 5, PDU, 0, PDU.Length);
+        Array.Copy(rawData, POS_LEN + 1, PDU, 0, PDU.Length);
 
         // Checksum
-        Checksum = rawData[5 + dataLen];
+        Checksum = rawData[POS_LEN + dataLen + 1];
 
-        // Todo verify checksum
+        // Verify checksum
+        byte calcCheck = dataLen;
+        foreach (byte b in PDU)
+        {
+            calcCheck ^= b;
+        }
+        log.Debug($"Checksum: read={Checksum.ToString("X2")}, calc={calcCheck.ToString("X2")}");
+        IsValid = (calcCheck == Checksum);
 
         // Check end telegram
         try
