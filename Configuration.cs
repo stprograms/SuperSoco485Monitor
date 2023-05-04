@@ -3,12 +3,15 @@ using Microsoft.Extensions.Configuration;
 public class Configuration
 {
     private String comPort;
-    private uint? delayMS;
+    private bool? writeRawData;
 
     private String? outputDir = null;
 
     public String ComPort { get => comPort; }
-    public uint? DelayMS { get => delayMS; }
+    public bool WriteRawData
+    {
+        get => (writeRawData != null) ? (bool)writeRawData : false;
+    }
 
     public String? OutputDir { get => outputDir; }
 
@@ -27,13 +30,13 @@ public class Configuration
         {
             comPort = sec["port"]!;
         }
-        if (sec["delayMS"] == null) 
+        if (sec["writeRawData"] == null)
         {
-            delayMS = null;
+            writeRawData = null;
         }
         else
         {
-            delayMS = uint.Parse(sec["delayMS"]!);
+            writeRawData = bool.Parse(sec["writeRawData"]!);
         }
 
         if (sec["outputDir"] != null)

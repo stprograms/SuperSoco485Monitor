@@ -12,19 +12,43 @@ public class BatteryStatus : BaseTelegram
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
     #region Constants
+    /// <summary>
+    /// Required size of PDU data
+    /// </summary>
     private const byte TELEGRAM_SIZE = 10;
+    /// <summary>
+    /// Position of battery voltage in PDU
+    /// </summary>
     private const byte POS_VOLTAGE = 0;
+    /// <summary>
+    /// position of State of Charge in PDU
+    /// </summary>
     private const byte POS_SOC = 1;
+    /// <summary>
+    /// Position of temperature in PDU
+    /// </summary>
     private const byte POS_TEMP = 2;
+    /// <summary>
+    /// Position of charge / discharge current in PDU
+    /// </summary>
     private const byte POS_CHARGE = 3;
+    /// <summary>
+    /// Positiion of high byte of number of charging cycles in PDU
+    /// </summary>
     private const byte POS_CYCLE_H = 6;
+    /// <summary>
+    /// Position of low byte of number of charging cycles in PDU
+    /// </summary>
     private const byte POS_CYCLE_L = 7;
+    /// <summary>
+    /// Position of charging information in PDU
+    /// </summary>
     private const byte POS_CHARGING = 9;
     #endregion
 
     #region Properties
     /// <summary>
-    /// Current Battery Voltage
+    /// Current Battery Voltage in Volts
     /// </summary>
     public byte Voltage { get => PDU[POS_VOLTAGE]; }
     /// <summary>
