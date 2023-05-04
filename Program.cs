@@ -50,23 +50,10 @@ void ReadLocalFile(String file)
     TelegramParser parser = new();
 
     // Register new telegram handler 
-    parser.NewTelegram += (tel) =>
+    parser.NewTelegram += (sender, evt) =>
     {
-        BaseTelegram t = new(tel);
-        if (t.Source == 0xAA && t.Destination == 0x5A && t.PDU.Length == 10)
-        {
-            BatteryStatus bs = new(t);
-            log.Info(bs);
-        }
-        else if (t.Source == 0xAA && t.Destination == 0xDA && t.PDU.Length == 10)
-        {
-            ECUStatus es = new(t);
-            log.Info(es);
-        }
-        else
-        {
-            log.Info(t);
-        }
+        BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
+        log.Info(telegram);
     };
 
     // Parse the file

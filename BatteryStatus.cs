@@ -1,73 +1,101 @@
 using NLog;
 
+/// <summary>
+/// Specialization of the BaseTelegram class that extracts the information 
+/// of BatteryStatus
+/// </summary>
 public class BatteryStatus : BaseTelegram
 {
+    /// <summary>
+    /// Internal logging object
+    /// </summary>
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
+    #region Constants
+    private const byte TELEGRAM_SIZE = 10;
+    private const byte POS_VOLTAGE = 0;
+    private const byte POS_SOC = 1;
+    private const byte POS_TEMP = 2;
+    private const byte POS_CHARGE = 3;
+    private const byte POS_CYCLE_H = 6;
+    private const byte POS_CYCLE_L = 7;
+    private const byte POS_CHARGING = 9;
+    #endregion
 
     #region Properties
     /// <summary>
     /// Current Battery Voltage
     /// </summary>
-    public byte Voltage { get; }
+    public byte Voltage { get => PDU[POS_VOLTAGE]; }
     /// <summary>
     /// Current State of Charge in Percent
     /// </summary>
-    public byte SoC { get; }
+    public byte SoC { get => PDU[POS_SOC]; }
     /// <summary>
     /// Current temperature in degree Celcius
     /// </summary>
-    public byte Temperature { get; }
+    public byte Temperature { get => PDU[POS_TEMP]; }
     /// <summary>
     /// Current Charge or Discharge in Amps
     /// </summary>
-    public double Charge { get; }
+    public double Charge
+    {
+        get
+        {
+            double val = PDU[POS_CHARGE];
+            if (val >= 100) val /= 10.0;
+            return val;
+        }
+    }
     /// <summary>
     /// Total number of charging cycles
     /// </summary>
-    public UInt16 Cycles { get; }
+    public UInt16 Cycles { get => (UInt16)((PDU[POS_CYCLE_H] << 8) + PDU[POS_CYCLE_L]); }
     /// <summary>
     /// Battery is charging
     /// </summary>
-    public bool Charging { get; }
+    public bool Charging
+    {
+        get
+        {
+            bool val = false;
+            switch (PDU[POS_CHARGING])
+            {
+                case 0:
+                    val = false;
+                    break;
+
+                case 1:
+                    val = true;
+                    break;
+
+                default:
+                    log.Trace($"Charging: 0x{PDU[POS_CHARGING]:X2}");
+                    break;
+            }
+            return val;
+        }
+    }
     #endregion
 
     /// <summary>
     /// Create a new Battery Status object based on a received telegram
     /// </summary>
     /// <param name="t">Raw telegram</param>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">Raw data has an unexpected length</exception>
     public BatteryStatus(BaseTelegram t)
     : base(t)
     {
-        if (t.PDU.Length != 10)
+        if (t.PDU.Length != TELEGRAM_SIZE)
         {
-            throw new ArgumentException("Unexpected size");
-        }
-
-        Voltage = t.PDU[0];
-        SoC = t.PDU[1];
-        Temperature = t.PDU[2];
-        Charge = t.PDU[3];
-        // if charge is bigger than 100, divide through 10 then
-        if (Charge >= 100) Charge /= 10.0;
-        Cycles = (UInt16)((t.PDU[6] << 8) + t.PDU[7]);
-        switch (t.PDU[9])
-        {
-            case 0:
-                Charging = false;
-                break;
-
-            case 1:
-                Charging = true;
-                break;
-
-            default:
-                Charging = false;
-                log.Trace($"Charging: 0x{t.PDU[9]:X2}");
-                break;
+            throw new ArgumentException($"Unexpected size of {t.PDU.Length}");
         }
     }
 
+    /// <summary>
+    /// Get a string representation of the telegram
+    /// </summary>
+    /// <returns>String representation</returns>
     public override string ToString()
     {
         log.Debug(base.ToString());
