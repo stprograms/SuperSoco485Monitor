@@ -14,8 +14,17 @@ For connecting to the internal RS485 bus of the motorcycle, you need a RS485 to 
 
 The best way to connect the RS485 is the 4 pin JST SM connector under the seat that connects the internals and the external battery plug. There, the two middle connectors are the RS485 interface.
 
-> *Todo*:
-> Better describe the connection to the interface
+### JST Connector pinning
+Super Soco (at least TC Max), uses a JST SM 4 pin connector under the seat. This connector can be disconnected if the motorcycle is not charged through the external charger port. Instead of the connection to the external charger, a JST SM 4 pin plug can be connected and attached to a RS485 converter. The pinning of the connector is as following:
+
+| Pin | Signal  |
+| --- | :-----: |
+| 1   |    ?     |
+| 2   | RX- / B |
+| 3   | RX+ / A |
+| 4   |     ?    |
+
+The signals on pin 1 and 4 are currently unknown.
 
 # RS485 Protocol
 The following information is taken from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) project and is sumarized here. All the information has been reverse engineered and can therefor hold errors and unknown data.
