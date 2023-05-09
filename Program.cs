@@ -21,15 +21,22 @@ foreach (String s in args)
     log.Debug(s);
 }
 
-Parser.Default.ParseArguments<CmdOptions>(args)
+var result = Parser.Default.ParseArguments<CmdOptions>(args)
     .WithParsed<CmdOptions>(o =>
     {
         if (o.InputFile != null)
         {
             parseFile = o.InputFile;
         }
-    });
+    }
+    );
 
+// Check return value of parser result
+if (result.Tag == ParserResultType.NotParsed)
+{
+    // Help text requested, or parsing failed. Exit.
+    return;
+}
 
 // Select execution
 if (parseFile != null)

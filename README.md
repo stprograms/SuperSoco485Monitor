@@ -5,6 +5,11 @@ This small application is used for debug and analysis of the data received from 
 
 Information about the Baudrate, Structure of the telegrams and content of the telegrams has been derived from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) of [Xmanu12](https://github.com/Xmanu12).
 
+## Configuration
+**This chapter needs to be filled with life.**
+### Console arguments
+### appsettings.json
+
 
 ## Necessary hardware
 For connecting to the internal RS485 bus of the motorcycle, you need a RS485 to serial converter. You can use all possible versions, like
