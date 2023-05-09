@@ -6,9 +6,33 @@ This small application is used for debug and analysis of the data received from 
 Information about the Baudrate, Structure of the telegrams and content of the telegrams has been derived from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) of [Xmanu12](https://github.com/Xmanu12).
 
 ## Configuration
-**This chapter needs to be filled with life.**
-### Console arguments
+This section describes how the behavior of the application can be configured.
+
 ### appsettings.json
+The output of the application is done using the NLog library. That means that the output can be configured using the NLog object in the appsettings.json. It is recommended though that these settings are not changed.
+
+Other than NLog, the application can be configured using the following options in the `Monitor` object in `appsettings.json`.
+```json
+{
+"Monitor": {
+    "port": "COM6",
+    "writeRawData" : true,
+    "outputDir" : ""
+  }
+}
+```
+
+| Setting      | Type    | Description                                                                                                                  |
+| ------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| port         | string  | Name of the port to open. eg. COM6                                                                                           |
+| writeRawData | boolean | Write all received data also to a binary file. A new file (with timestamp) is created every time the application is started. |
+| outputDir    | string  | (optional) If configured, create the binary files in the given folder.                                                       |
+
+
+### Console arguments
+If the application is called without arguments, the application will try to connect to the configured com port and parse the telegrams live. Each telegram is then exported to the console using nlog. The format is either binary or if the telegram is known, written in a decoded way.
+
+If a the path of a binary file is provided as a console argument, the content of the file will be parsed and printed to the console, instead of using the configured serial port. 
 
 
 ## Necessary hardware
@@ -24,10 +48,10 @@ Super Soco (at least TC Max), uses a JST SM 4 pin connector under the seat. This
 
 | Pin | Signal  |
 | --- | :-----: |
-| 1   |    ?     |
+| 1   |    ?    |
 | 2   | RX- / B |
 | 3   | RX+ / A |
-| 4   |     ?    |
+| 4   |    ?    |
 
 The signals on pin 1 and 4 are currently unknown.
 
