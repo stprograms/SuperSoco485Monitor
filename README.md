@@ -128,7 +128,13 @@ The following telegrams and packages of read responses are already decoded.
 | Parking       | Parking mode (2=on / 1=off) |                     |
 
 
-### Time (C55C BA AA)
-| Byte (len=15) |   0   |   1   |   2   |   3   |   4   |   5   |   6   |   7   |   8   |   9   |
-| ------------- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-|               |   ?   |   ?   |   ?   |   ?   |   H   |   M   |   ?   |   ?   |   ?   |   ?   |
+### GSM (Read Request 0xBAAA)
+| Byte (len=15) |   0   |   1   |   2   |   3   |   4   |   5    |   6   |   7   |   8   |   9   |
+| ------------- | :---: | :---: | :---: | :---: | :---: | :----: | :---: | :---: | :---: | :---: |
+|               |   ?   |   ?   |   ?   |   ?   | Hour  | Minute |   ?   |   ?   |   ?   |   ?   |
+
+#### Description of the variables
+| Variable | Description                 | Unit |
+| -------- | --------------------------- | ---- |
+| Hour     | current hour in localtime   |      |
+| Minute   | current minute in localtime |      |
