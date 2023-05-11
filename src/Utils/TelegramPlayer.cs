@@ -1,3 +1,6 @@
+/// <summary>
+/// Player for replaying telegrams
+/// </summary>
 public class TelegramPlayer
 {
     /// <summary>
@@ -5,61 +8,106 @@ public class TelegramPlayer
     /// </summary>
     private const double DEFAULT_INTERVAL = 5;
 
+    /// <summary>
+    /// List of telegrams
+    /// </summary>
     public List<BaseTelegram> Telegrams { get; }
 
-    private int position = -1;
-    private double interval = DEFAULT_INTERVAL;
+    /// <summary>
+    /// Enumerator of the Telegram list
+    /// </summary>
+    private List<BaseTelegram>.Enumerator it;
 
+    /// <summary>
+    /// Timer used for emitting data
+    /// </summary>
     private System.Timers.Timer timer;
 
-    private SemaphoreSlim signal = new SemaphoreSlim(0, 1);
+    /// <summary>
+    /// Semaphore used for signalling playback finished
+    /// </summary>
+    private SemaphoreSlim finishedSem = new SemaphoreSlim(0, 1);
 
-    public event EventHandler<TelegramParser.TelegramArgs>? TelegramReceived = null;
+    /// <summary>
+    /// Event called for emitting telegrams
+    /// </summary>
+    public event EventHandler<TelegramParser.TelegramArgs>? TelegramEmitted = null;
 
-    public event EventHandler? PlaybackFinished = null;
-
+    /// <summary>
+    /// Create a new TelegramPlayer
+    /// </summary>
+    /// <param name="interval">optional interval to use for playback</param>
     public TelegramPlayer(double? interval = null)
     {
         this.Telegrams = new();
+        it = Telegrams.GetEnumerator();
 
+        // Use given interval or default
+        double ival = DEFAULT_INTERVAL;
         if (interval != null)
         {
-            this.interval = (double)interval;
+            ival = (double)interval;
         }
 
-        timer = new(this.interval) { AutoReset = false };
+        // initialze the timer
+        timer = new(ival) { AutoReset = false };
         timer.Elapsed += (o, e) =>
         {
             // Timer elapsed callback
-            TelegramReceived?.Invoke(this, new TelegramParser.TelegramArgs(Telegrams[++position]));
-            if (position >= Telegrams.Count - 1)
+            var tel = it.Current;
+            if (tel != null && TelegramEmitted != null)
             {
-                signal.Release();
-                PlaybackFinished?.Invoke(this, new EventArgs());
+                TelegramEmitted.Invoke(this, new TelegramParser.TelegramArgs(tel));
+            }
+
+            // Got to next entry or emit finished semaphore
+            if (it.MoveNext())
+            {
+                timer.Start();
             }
             else
             {
-                timer.Start();
+                finishedSem.Release();
             }
         };
     }
 
+    /// <summary>
+    /// Add the telegram to the list
+    /// </summary>
+    /// <param name="t">Telegram to add</param>
     public void AddTelegram(BaseTelegram t)
     {
         Telegrams.Add(t);
     }
 
-
+    /// <summary>
+    /// Replay the telegrams asynchronously.
+    /// </summary>
+    /// <returns>Task</returns>
+    /// <exception cref="InvalidOperationException">No eventhandler added to
+    /// TelegramEmitted</exception>
     public Task ReplayTelegramsAsync()
     {
         return Task.Run(async () =>
         {
-            if (TelegramReceived == null)
+            if (TelegramEmitted == null)
             {
-                throw new InvalidOperationException("No eventHandler for TelegramReceived registered");
+                throw new InvalidOperationException("No eventHandler for " +
+                "TelegramReceived registered");
             }
             timer.Start();
-            await signal.WaitAsync();
+
+            // Get current enumerator
+            it = Telegrams.GetEnumerator();
+
+            if (it.MoveNext())
+            {
+                // wait until the finished semaphore has been set
+                // (only if data is available in the enumerator)
+                await finishedSem.WaitAsync();
+            }
+
         });
     }
 }

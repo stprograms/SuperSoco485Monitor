@@ -70,7 +70,7 @@ async Task ReadLocalFile(String file)
     // Parse the file
     parser.ParseFile(file);
 
-    player.TelegramReceived += (o, e) =>
+    player.TelegramEmitted += (o, e) =>
     {
         printer.PrintTelegram(e.Telegram);
     };
