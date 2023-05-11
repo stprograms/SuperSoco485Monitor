@@ -17,7 +17,8 @@ Other than NLog, the application can be configured using the following options i
 "Monitor": {
     "port": "COM6",
     "writeRawData" : true,
-    "outputDir" : ""
+    "outputDir" : "",
+    "replayCycle" : 5
   }
 }
 ```
@@ -27,12 +28,16 @@ Other than NLog, the application can be configured using the following options i
 | port         | string  | Name of the port to open. eg. COM6                                                                                           |
 | writeRawData | boolean | Write all received data also to a binary file. A new file (with timestamp) is created every time the application is started. |
 | outputDir    | string  | (optional) If configured, create the binary files in the given folder.                                                       |
+| replayCycle  | double  | Cycle for replaying telegrams in milliseconds                                                                                |
 
 
 ### Console arguments
 If the application is called without arguments, the application will try to connect to the configured com port and parse the telegrams live. Each telegram is then exported to the console using nlog. The format is either binary or if the telegram is known, written in a decoded way.
 
-If a the path of a binary file is provided as a console argument, the content of the file will be parsed and printed to the console, instead of using the configured serial port. 
+If a the path of a binary file is provided as a console argument, the content of the file will be parsed and printed to the console, instead of using the configured serial port.
+
+#### Using the Monitor as simulator
+To replay telegrams previously recorded, use a binary file as command argument and provide the flag `-r`. This will open the serial port set in the configuration file and replay the telegrams from the binary file. The timing will not be the same as the original, but the telegrams will be sent in a configurable cycle.
 
 
 ## Necessary hardware

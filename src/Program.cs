@@ -16,10 +16,7 @@ Configuration cfg = new(config.GetSection("Monitor"));
 
 // Commandline parser
 String? parseFile = null;
-foreach (String s in args)
-{
-    log.Debug(s);
-}
+bool replayToSerial = false;
 
 var result = Parser.Default.ParseArguments<CmdOptions>(args)
     .WithParsed<CmdOptions>(o =>
@@ -28,6 +25,7 @@ var result = Parser.Default.ParseArguments<CmdOptions>(args)
         {
             parseFile = o.InputFile;
         }
+        replayToSerial = o.replayOnSerial;
     }
     );
 
@@ -41,7 +39,10 @@ if (result.Tag == ParserResultType.NotParsed)
 // Select execution
 if (parseFile != null)
 {
-    await ReadLocalFile(parseFile);
+    if (replayToSerial)
+        await ReplayTraffic(parseFile, cfg.ComPort);
+    else
+        await ReadLocalFile(parseFile);
 }
 else
 {
@@ -56,7 +57,7 @@ async Task ReadLocalFile(String file)
 {
     TelegramParser parser = new();
     ConsolePrinter printer = new();
-    TelegramPlayer player = new();
+    TelegramPlayer player = new(cfg.ReplayCycle);
 
     // Register new telegram handler 
     parser.NewTelegram += (sender, evt) =>
@@ -116,4 +117,45 @@ void StartMonitor(Configuration cfg)
     {
         Thread.Sleep(10);
     }
+}
+
+
+/// <summary>
+/// Read a local file and parse it
+/// </summary>
+async Task ReplayTraffic(string file, string port)
+{
+    TelegramParser parser = new();
+    TelegramPlayer player = new(cfg.ReplayCycle);
+    SerialSimulator sim;
+
+    try
+    {
+        sim = new(port);
+    }
+    catch (System.IO.FileNotFoundException ex)
+    {
+        log.Fatal(ex, "Couldn't create simulator");
+        return;
+    }
+
+    // Register new telegram handler 
+    parser.NewTelegram += (sender, evt) =>
+    {
+        BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
+
+        // Add telegram to player
+        if (telegram.Valid)
+            player.AddTelegram(telegram);
+    };
+
+    // Parse the file
+    parser.ParseFile(file);
+    player.TelegramEmitted += (o, e) =>
+    {
+        sim.WriteTelegram(e.Telegram);
+    };
+
+    // Replay telegrams
+    await player.ReplayTelegramsAsync();
 }
