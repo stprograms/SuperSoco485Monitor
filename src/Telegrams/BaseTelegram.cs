@@ -4,7 +4,7 @@ using NLog;
 /// This class defines a basic telegram with data. No special parsing of the 
 /// content is done here. Check the specialized classes for more detail
 /// </summary>
-public class BaseTelegram
+public class BaseTelegram : IEquatable<BaseTelegram>
 {
     /// <summary>
     /// Internal logging structure
@@ -104,7 +104,7 @@ public class BaseTelegram
 
         this.PDU = new byte[c.PDU.Length];
         Array.Copy(c.PDU, this.PDU, this.PDU.Length);
-        
+
         this.Valid = c.Valid;
     }
 
@@ -169,5 +169,31 @@ public class BaseTelegram
             hex.AppendFormat("{0:X2} ", b);
 
         return hex.ToString();
+    }
+
+    /// <summary>
+    /// Print detailed information. Starts with Raw Format, followed by parsed content
+    /// </summary>
+    /// <returns></returns>
+    public virtual string ToStringDetailed()
+    {
+        if (this.GetType() != typeof(BaseTelegram))
+        {
+            System.Text.StringBuilder hex = new(Raw.Length * 3);
+
+            foreach (byte b in Raw)
+                hex.AppendFormat("{0:X2} ", b);
+
+            hex.Append(" -> ");
+            hex.Append(ToString());
+
+            return hex.ToString();
+        }
+        return ToString();
+    }
+
+    public bool Equals(BaseTelegram? other)
+    {
+        return Array.Equals(this.Raw, other?.Raw);
     }
 }
