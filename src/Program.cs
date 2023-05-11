@@ -41,7 +41,7 @@ if (result.Tag == ParserResultType.NotParsed)
 // Select execution
 if (parseFile != null)
 {
-    ReadLocalFile(parseFile);
+    await ReadLocalFile(parseFile);
 }
 else
 {
@@ -52,19 +52,31 @@ else
 /// <summary>
 /// Read a local file and parse it
 /// </summary>
-void ReadLocalFile(String file)
+async Task ReadLocalFile(String file)
 {
     TelegramParser parser = new();
+    ConsolePrinter printer = new();
+    TelegramPlayer player = new();
 
     // Register new telegram handler 
     parser.NewTelegram += (sender, evt) =>
     {
         BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
-        log.Info(telegram);
+        //log.Info(telegram);
+        if (telegram.Valid) //printer.PrintTelegram(telegram);
+            player.AddTelegram(telegram);
     };
 
     // Parse the file
     parser.ParseFile(file);
+
+    player.TelegramReceived += (o, e) =>
+    {
+        printer.PrintTelegram(e.Telegram);
+    };
+
+    await player.ReplayTelegramsAsync();
+    printer.FlushAndStopTimer();
 }
 
 

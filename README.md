@@ -98,9 +98,9 @@ The following telegrams and packages of read responses are already decoded.
 
 ### BMS Status (Read Response 0xAA5A)
 
-| Byte (len=10) |    0    |   1   |   2   |   3    |   4   |   5   |   6    |   7    |   8   |    9     |
-| ------------- | :-----: | :---: | :---: | :----: | :---: | :---: | :----: | :----: | :---: | :------: |
-|               | Voltage |  SoC  | Temp  | Charge |   ?   |   ?   | CycleH | CycleL |   ?   | Charging |
+| Byte (len=10) |    0    |   1   |   2   |   3    |   4    |   5    |   6   |   7   |   8   |    9     |
+| ------------- | :-----: | :---: | :---: | :----: | :----: | :----: | :---: | :---: | :---: | :------: |
+|               | Voltage |  SoC  | Temp  | Charge | CycleH | CycleL |   ?   |   ?   |   ?   | Charging |
 
 #### Description of the variables
 | Variable   | Description                                  | Unit          |
@@ -126,3 +126,9 @@ The following telegrams and packages of read responses are already decoded.
 | Speed [H/L]   | Current speed               | [km/h]              |
 | ECU Temp      | Temperature of ECU          | Degree Celcius [°C] |
 | Parking       | Parking mode (2=on / 1=off) |                     |
+
+
+### Time (C55C BA AA)
+| Byte (len=15) |   0   |   1   |   2   |   3   |   4   |   5   |   6   |   7   |   8   |   9   |
+| ------------- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|               |   ?   |   ?   |   ?   |   ?   |   H   |   M   |   ?   |   ?   |   ?   |   ?   |

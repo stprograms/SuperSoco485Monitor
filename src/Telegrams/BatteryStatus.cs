@@ -35,11 +35,11 @@ public class BatteryStatus : BaseTelegram
     /// <summary>
     /// Positiion of high byte of number of charging cycles in PDU
     /// </summary>
-    private const byte POS_CYCLE_H = 6;
+    private const byte POS_CYCLE_H = 4;
     /// <summary>
     /// Position of low byte of number of charging cycles in PDU
     /// </summary>
-    private const byte POS_CYCLE_L = 7;
+    private const byte POS_CYCLE_L = 5;
     /// <summary>
     /// Position of charging information in PDU
     /// </summary>
@@ -122,7 +122,7 @@ public class BatteryStatus : BaseTelegram
     /// <returns>String representation</returns>
     public override string ToString()
     {
-        log.Debug(base.ToString());
+        log.Trace(base.ToString());
         return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, Charging: {Charging}";
     }
 }

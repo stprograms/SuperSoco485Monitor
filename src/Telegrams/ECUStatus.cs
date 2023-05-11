@@ -51,7 +51,7 @@ public class ECUStatus : BaseTelegram
     /// <returns>String representation</returns>
     public override string ToString()
     {
-        log.Debug(base.ToString());
+        log.Trace(base.ToString());
         return $"ECU Status: Mode {Mode}, {Current}mA, {Speed}km/h, {Temperature}°C, Parking: {Parking}";
     }
 }

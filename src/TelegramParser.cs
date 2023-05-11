@@ -212,6 +212,14 @@ public class TelegramParser
             }
         }
 
+        else if (tg.Type == BaseTelegram.TelegramType.READ_REQUEST)
+        {
+            if (tg.Source == 0xBA && tg.Destination == 0xAA && tg.PDU.Length == GSMStatus.RAW_DATA_LEN)
+            {
+                tg = new GSMStatus(tg);
+            }
+        }
+
         return tg;
     }
 
