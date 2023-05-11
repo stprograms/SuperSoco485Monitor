@@ -7,6 +7,11 @@ public class Configuration
 
     private String? outputDir = null;
 
+    /// <summary>
+    /// Replay Cycle in ms
+    /// </summary>
+    public double? ReplayCycle { get; }
+
     public String ComPort { get => comPort; }
     public bool WriteRawData
     {
@@ -37,6 +42,14 @@ public class Configuration
         else
         {
             writeRawData = bool.Parse(sec["writeRawData"]!);
+        }
+        if (sec["replayCycle"] == null)
+        {
+            ReplayCycle = null;
+        }
+        else
+        {
+            ReplayCycle = double.Parse(sec["replayCycle"]!);
         }
 
         if (sec["outputDir"] != null)
