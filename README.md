@@ -134,9 +134,9 @@ The following telegrams and packages of read responses are already decoded.
 
 
 ### GSM (Read Request 0xBAAA)
-| Byte (len=15) |   0   |   1   |   2   |   3   |   4   |   5    |   6   |   7   |   8   |   9   |
-| ------------- | :---: | :---: | :---: | :---: | :---: | :----: | :---: | :---: | :---: | :---: |
-|               |   ?   |   ?   |   ?   |   ?   | Hour  | Minute |   ?   |   ?   |   ?   |   ?   |
+| Byte (len=14) |   0   |   1   |   2   |   3   |   4   |   5    |   6   |   7   |   8   |   9   |  10   |  11   |  12   |  13   |
+| ------------- | :---: | :---: | :---: | :---: | :---: | :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|               |   ?   |   ?   |   ?   |   ?   | Hour  | Minute |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   |   ?   |
 
 #### Description of the variables
 | Variable | Description                 | Unit |
