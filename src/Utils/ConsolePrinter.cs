@@ -1,7 +1,7 @@
 /// <summary>
 /// Specialized printer and display of data on the console
 /// </summary>
-public class ConsolePrinter
+public class ConsolePrinter : IUserVisualizable
 {
     /// <summary>
     /// Interval / refresh timer in milliseconds the data will be refreshed
@@ -148,6 +148,11 @@ public class ConsolePrinter
             refreshTimer.Start();
         }
     }
+
+    /// <summary>
+    /// Interface implementation
+    /// </summary>
+    public void Flush() => FlushAndStopTimer();
 
     /// <summary>
     /// Print the screen if print is required and stop the refresh timer
