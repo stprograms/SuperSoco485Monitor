@@ -10,4 +10,7 @@ public class CmdOptions
 
     [Option('r', "replay", HelpText = "Replay data on serial port", Default = false)]
     public bool replayOnSerial { get; set; }
+
+    [Option('g', "group", HelpText = "Group telegrams in output", Default = false)]
+    public bool groupOutput { get; set; }
 }

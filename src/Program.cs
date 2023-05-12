@@ -17,6 +17,8 @@ Configuration cfg = new(config.GetSection("Monitor"));
 // Commandline parser
 String? parseFile = null;
 bool replayToSerial = false;
+bool groupOutput = false;
+
 
 var result = Parser.Default.ParseArguments<CmdOptions>(args)
     .WithParsed<CmdOptions>(o =>
@@ -26,6 +28,7 @@ var result = Parser.Default.ParseArguments<CmdOptions>(args)
             parseFile = o.InputFile;
         }
         replayToSerial = o.replayOnSerial;
+        groupOutput = o.groupOutput;
     }
     );
 
@@ -34,6 +37,17 @@ if (result.Tag == ParserResultType.NotParsed)
 {
     // Help text requested, or parsing failed. Exit.
     return;
+}
+
+// Configure output
+IUserVisualizable printer;
+if (groupOutput)
+{
+    printer = new ConsolePrinter();
+}
+else
+{
+    printer = new LogPrinter();
 }
 
 // Select execution
@@ -56,7 +70,6 @@ else
 async Task ReadLocalFile(String file)
 {
     TelegramParser parser = new();
-    ConsolePrinter printer = new();
     TelegramPlayer player = new(cfg.ReplayCycle);
 
     // Register new telegram handler 
@@ -64,20 +77,31 @@ async Task ReadLocalFile(String file)
     {
         BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
         //log.Info(telegram);
-        if (telegram.Valid) //printer.PrintTelegram(telegram);
+        if (telegram.Valid)
             player.AddTelegram(telegram);
     };
 
     // Parse the file
-    parser.ParseFile(file);
+    try
+    {
+        parser.ParseFile(file);
+    }
+    catch (System.IO.FileNotFoundException ex)
+    {
+        log.Fatal(ex, "Could not open file to parse");
+        return;
+    }
 
     player.TelegramEmitted += (o, e) =>
     {
         printer.PrintTelegram(e.Telegram);
     };
 
+    // Await that all telegrams where emitted
     await player.ReplayTelegramsAsync();
-    printer.FlushAndStopTimer();
+
+    // Flush all printer output
+    printer.Flush();
 }
 
 
@@ -93,6 +117,11 @@ void StartMonitor(Configuration cfg)
     {
         monitor.OutputDir = cfg.OutputDir;
     }
+    monitor.TelegramReceived += (o, e) =>
+    {
+        // Print the received telegram
+        printer.PrintTelegram(e.Telegram);
+    };
 
     // Register CTRL+C
     Console.CancelKeyPress += delegate
@@ -113,7 +142,7 @@ void StartMonitor(Configuration cfg)
     }
 
     // Endless loop
-    while (true)
+    while (monitor.Running)
     {
         Thread.Sleep(10);
     }
@@ -129,17 +158,20 @@ async Task ReplayTraffic(string file, string port)
     TelegramPlayer player = new(cfg.ReplayCycle);
     SerialSimulator sim;
 
+    log.Info($"Starting replay of {file} on port {cfg.ComPort}");
+
+    // Create serial simulator
     try
     {
         sim = new(port);
     }
     catch (System.IO.FileNotFoundException ex)
     {
-        log.Fatal(ex, "Couldn't create simulator");
+        log.Fatal(ex, "Couldn't open COM Port");
         return;
     }
 
-    // Register new telegram handler 
+    // Register new telegram handler of parser
     parser.NewTelegram += (sender, evt) =>
     {
         BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
@@ -150,7 +182,15 @@ async Task ReplayTraffic(string file, string port)
     };
 
     // Parse the file
-    parser.ParseFile(file);
+    try
+    {
+        parser.ParseFile(file);
+    }
+    catch (System.IO.FileNotFoundException ex)
+    {
+        log.Fatal(ex, "Could not open file to parse");
+        return;
+    }
     player.TelegramEmitted += (o, e) =>
     {
         sim.WriteTelegram(e.Telegram);
@@ -158,4 +198,6 @@ async Task ReplayTraffic(string file, string port)
 
     // Replay telegrams
     await player.ReplayTelegramsAsync();
+
+    log.Info($"Replay finished");
 }

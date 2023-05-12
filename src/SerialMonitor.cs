@@ -40,10 +40,15 @@ public class SerialMonitor
     public String? OutputDir = null;
 
     /// <summary>
+    /// Monitor is running
+    /// </summary>
+    public bool Running { get; internal set; }
+
+    /// <summary>
     /// A new response telegram has been received. Will return a
     /// TelegramParser.TelegramArgs argument
     /// </summary>
-    public event EventHandler? ResponseReceived;
+    public event EventHandler<TelegramParser.TelegramArgs>? TelegramReceived;
 
     #region Constants
     /// <summary>
@@ -64,9 +69,14 @@ public class SerialMonitor
     public SerialMonitor(string comPort, bool writeRawData = false)
     {
         // Initialize the comport
-        port = new(comPort);
-        port.BaudRate = BAUDRATE;
+        port = new(comPort)
+        {
+            BaudRate = BAUDRATE
+        };
         port.DataReceived += DataReceivedHandler;
+
+        // Set running to false
+        Running = false;
 
         // write the raw data to disk
         this.writeRawData = writeRawData;
@@ -77,16 +87,9 @@ public class SerialMonitor
         {
             BaseTelegram? tel = (t as TelegramParser.TelegramArgs)?.Telegram;
 
-            if (tel != null)
+            if (tel != null && TelegramReceived != null)
             {
-                // Simple output the received telegrams
-                log.Debug(tel);
-
-                // Forward responses using the event
-                if (tel.Type == BaseTelegram.TelegramType.READ_RESPONSE)
-                {
-                    ResponseReceived?.Invoke(this, t);
-                }
+                TelegramReceived.Invoke(this, new TelegramParser.TelegramArgs(tel));
             }
         };
     }
@@ -143,6 +146,8 @@ public class SerialMonitor
             FileInfo rawFile = new(filePath);
             this.rawStream = rawFile.Create();
         }
+
+        Running = true;
     }
 
     /// <summary>
@@ -155,5 +160,7 @@ public class SerialMonitor
 
         // Close the stream
         rawStream?.Close();
+
+        Running = false;
     }
 }
