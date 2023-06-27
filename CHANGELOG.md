@@ -10,5 +10,8 @@ This file holds the Changelog of the project and all relevant changes.
 - Implemented SerialSimulator to replay data on the serial port
 - Introduced interface IUserVisualizeable and LogPrinter, so the output can be selected by the user
 
+### Changed
+- Default COM Port in settings to COM1
+
 ## 1.0.0
 Initial release including support for live parsing and parsing of stored files.
