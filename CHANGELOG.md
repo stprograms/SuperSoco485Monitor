@@ -2,6 +2,13 @@
 
 This file holds the Changelog of the project and all relevant changes.
 
+## 1.1.1
+### Fixed
+- Wrong data interpretation in BMS telegram
+
+### Added
+- VBreaker field in BMS telegram
+
 ## 1.1.0
 ### Added
 - Implemented a console printer for formatted output per telegram
