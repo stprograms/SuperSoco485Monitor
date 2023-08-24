@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using NLog;
 
 /// <summary>
@@ -10,6 +11,47 @@ public class BatteryStatus : BaseTelegram
     /// Internal logging object
     /// </summary>
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
+
+    /// <summary>
+    /// Possible activities of the battery
+    /// </summary>
+    public enum BatteryActivity
+    {
+        /// <summary>
+        /// Battery has no activity
+        /// </summary>
+        NO_ACTIVITY = 0x00,
+
+        /// <summary>
+        /// Battery is currently charging
+        /// </summary>
+        CHARGING = 0x01,
+
+        /// <summary>
+        /// Battery is currently discharging
+        /// </summary>
+        DISCHARGING = 0x04
+    }
+
+    public enum VBreakerStatus
+    {
+        /// <summary>
+        /// BMS has stopped charging
+        /// </summary>
+        OK                      = 0,
+        /// <summary>
+        /// BMS has stopped charging
+        /// </summary>
+        BMS_STOPPED_CHARGE      = 1,
+        /// <summary>
+        /// Too high charge current
+        /// </summary>
+        HIGH_CURRENT_CHARGE     = 2,
+        /// <summary>
+        /// Too high discharge current
+        /// </summary>
+        HIGH_CURRENT_DISCHARGE  = 4
+    }
 
     #region Constants
     /// <summary>
@@ -41,6 +83,10 @@ public class BatteryStatus : BaseTelegram
     /// </summary>
     private const byte POS_CYCLE_L = 5;
     /// <summary>
+    /// Position of VBreaker information
+    /// </summary>
+    private const byte POS_VBREAKER= 8;
+    /// <summary>
     /// Position of charging information in PDU
     /// </summary>
     private const byte POS_CHARGING = 9;
@@ -58,47 +104,33 @@ public class BatteryStatus : BaseTelegram
     /// <summary>
     /// Current temperature in degree Celcius
     /// </summary>
-    public byte Temperature { get => PDU[POS_TEMP]; }
+    public sbyte Temperature { get => (sbyte)PDU[POS_TEMP]; }
+    /// <summary>
+    /// Current VBreaker status
+    /// </summary>
+    public VBreakerStatus VBreaker{ get => (VBreakerStatus)PDU[POS_VBREAKER]; }
     /// <summary>
     /// Current Charge or Discharge in Amps
     /// </summary>
-    public double Charge
-    {
-        get
-        {
-            double val = PDU[POS_CHARGE];
-            if (val >= 100) val /= 10.0;
-            return val;
-        }
-    }
+    public sbyte Charge { get => (sbyte)PDU[POS_CHARGE]; }
     /// <summary>
     /// Total number of charging cycles
     /// </summary>
-    public UInt16 Cycles { get => (UInt16)((PDU[POS_CYCLE_H] << 8) + PDU[POS_CYCLE_L]); }
+    public ushort Cycles { get => (ushort)((PDU[POS_CYCLE_H] << 8) | PDU[POS_CYCLE_L]); }
     /// <summary>
-    /// Battery is charging
+    /// current battery activity
+    /// </summary>
+    public BatteryActivity Activity
+    {
+        get => (BatteryActivity)PDU[POS_CHARGING];
+    }
+
+    /// <summary>
+    /// Is Battery charging
     /// </summary>
     public bool Charging
     {
-        get
-        {
-            bool val = false;
-            switch (PDU[POS_CHARGING])
-            {
-                case 0:
-                    val = false;
-                    break;
-
-                case 1:
-                    val = true;
-                    break;
-
-                default:
-                    log.Trace($"Charging: 0x{PDU[POS_CHARGING]:X2}");
-                    break;
-            }
-            return val;
-        }
+        get => Activity == BatteryActivity.CHARGING;
     }
     #endregion
 
@@ -123,6 +155,7 @@ public class BatteryStatus : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, Charging: {Charging}";
+        return  $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, VBreaker: {VBreaker}, " +
+                $"Activity: {Activity}, Charging: {Charging}";
     }
 }
