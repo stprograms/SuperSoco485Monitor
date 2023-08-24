@@ -108,7 +108,7 @@ The following telegrams and packages of read responses are already decoded.
 |               | Voltage |  SoC  | Temp  | Charge | CycleH | CycleL |   ?   |   ?   | VBreaker | Charging |
 
 #### Description of the variables
-| Variable   | Description                                  | Unit                                                                                              | Data type     |
+| Variable   | Description                                  | Unit                                                                                              | Data Type     |
 | ---------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------- |
 | Voltage    | current Voltage of the Battery in V          | Volts[V]                                                                                          | unsigned byte |
 | SoC        | State of Charge in %                         | Percent [%]                                                                                       | unsigned byte |
