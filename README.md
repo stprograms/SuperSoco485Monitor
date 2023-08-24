@@ -108,15 +108,15 @@ The following telegrams and packages of read responses are already decoded.
 |               | Voltage |  SoC  | Temp  | Charge | CycleH | CycleL |   ?   |   ?   | VBreaker | Charging |
 
 #### Description of the variables
-| Variable   | Description                                  | Unit                                                                                      | Data type     |
-| ---------- | -------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------- |
-| Voltage    | current Voltage of the Battery in V          | Volts[V]                                                                                  | unsigned byte |
-| SoC        | State of Charge in %                         | Percent [%]                                                                               | unsigned byte |
-| Temp       | current temperatur of the BMS                | Degree C [°C]                                                                             | signed byte   |
-| Charge     | current charging or discharging current in A | Ampere [A]                                                                                | signed byte   |
-| Cycle[H/L] | Number of loading cycles                     |                                                                                           | unsigned word |
-| VBreaker   |                                              | 1 = bms stopped charge,<br>2 = too high charge current,<br>4 = too high discharge current | unsigned byte |
-| Charging   | Battery is currently charging                | 1= charge<br>4= discharge                                                                 | unsigned byte |
+| Variable   | Description                                  | Unit                                                                                              | Data type     |
+| ---------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------- |
+| Voltage    | current Voltage of the Battery in V          | Volts[V]                                                                                          | unsigned byte |
+| SoC        | State of Charge in %                         | Percent [%]                                                                                       | unsigned byte |
+| Temp       | current temperatur of the BMS                | Degree C [°C]                                                                                     | signed byte   |
+| Charge     | current charging or discharging current in A | Ampere [A]                                                                                        | signed byte   |
+| Cycle[H/L] | Number of loading cycles                     |                                                                                                   | unsigned word |
+| VBreaker   |                                              | 0 = OK<br>1 = bms stopped charge<br>2 = too high charge current<br>4 = too high discharge current | unsigned byte |
+| Charging   | Battery is currently charging                | 1 = charge<br>4 = discharge                                                                       | unsigned byte |
 
 ### ECU Status (Read Response 0xAADA)
 | Byte (len=10) |   0   |    1     |    2     |   3    |   4    |    5     |   6   |   7   |    8    |   9   |
