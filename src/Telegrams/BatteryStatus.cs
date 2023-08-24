@@ -18,6 +18,11 @@ public class BatteryStatus : BaseTelegram
     public enum BatteryActivity
     {
         /// <summary>
+        /// Battery has no activity
+        /// </summary>
+        NO_ACTIVITY = 0x00,
+
+        /// <summary>
         /// Battery is currently charging
         /// </summary>
         CHARGING = 0x01,
@@ -150,6 +155,7 @@ public class BatteryStatus : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, VBreaker: {VBreaker}, Charging: {Charging}";
+        return  $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, VBreaker: {VBreaker}, " +
+                $"Activity: {Activity}, Charging: {Charging}";
     }
 }
