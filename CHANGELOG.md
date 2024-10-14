@@ -5,7 +5,7 @@ This file holds the Changelog of the project and all relevant changes.
 ## 1.2.0
 ### Modified
 - Added discharging cycles to BMS telegram
-- Added information from @pervolian regarding different interfaces
+- Added information from @pervolianinen regarding different interfaces
 
 ## 1.1.1
 ### Fixed
