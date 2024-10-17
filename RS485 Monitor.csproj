@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <AssemblyTitle>Super Soco RS485 Monitor</AssemblyTitle>
     <Description>Application for monitoring traffic on RS485 interface of Super Soco motorcycles.</Description>
     <Author>stprograms</Author>
