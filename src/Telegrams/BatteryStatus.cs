@@ -83,6 +83,14 @@ public class BatteryStatus : BaseTelegram
     /// </summary>
     private const byte POS_CYCLE_L = 5;
     /// <summary>
+    /// Positiion of high byte of number of discharging cycles in PDU
+    /// </summary>
+    private const byte POS_DISCYCLE_H = 6;
+    /// <summary>
+    /// Position of low byte of number of discharging cycles in PDU
+    /// </summary>
+    private const byte POS_DISCYCLE_L = 7;
+    /// <summary>
     /// Position of VBreaker information
     /// </summary>
     private const byte POS_VBREAKER= 8;
@@ -117,6 +125,10 @@ public class BatteryStatus : BaseTelegram
     /// Total number of charging cycles
     /// </summary>
     public ushort Cycles { get => (ushort)((PDU[POS_CYCLE_H] << 8) | PDU[POS_CYCLE_L]); }
+    /// <summary>
+    /// Total number of discharging cycles
+    /// </summary>
+    public ushort DischargeCycles { get => (ushort)((PDU[POS_DISCYCLE_H] << 8) | PDU[POS_DISCYCLE_L]); }
     /// <summary>
     /// current battery activity
     /// </summary>
@@ -155,7 +167,8 @@ public class BatteryStatus : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return  $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, {Cycles}x, VBreaker: {VBreaker}, " +
+        return  $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, " +
+                $"Charged: {Cycles}x, Discharged: {DischargeCycles}x, VBreaker: {VBreaker}, " +
                 $"Activity: {Activity}, Charging: {Charging}";
     }
 }
