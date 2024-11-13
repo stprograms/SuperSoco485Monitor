@@ -20,6 +20,9 @@ public class ECUStatus : BaseTelegram
     public const byte RAW_DATA_LEN = 10;
     #endregion
 
+    /// <summary>
+    /// Possible parking states
+    /// </summary>
     public enum ParkStatus
     {
         PARKING_ON = 0x02,
@@ -28,8 +31,17 @@ public class ECUStatus : BaseTelegram
 
     #region Properties
     public byte Mode { get => PDU[POS_PDU]; }
-    public ushort Current { get => (ushort)((PDU[POS_CURRENT_H] << 8) + PDU[POS_CURRENT_L]); }
-    public ushort Speed { get => (ushort)((PDU[POS_SPEED_H] << 8) + PDU[POS_SPEED_L]); }
+    /// <summary>
+    /// Current in Ampere
+    /// </summary>
+    public float Current { get => (float)((ushort)((PDU[POS_CURRENT_H] << 8) + PDU[POS_CURRENT_L]) * 0.1); }
+    /// <summary>
+    /// Current speed in km/h
+    /// </summary>
+    public float Speed { get => (float) ((ushort)((PDU[POS_SPEED_H] << 8) + PDU[POS_SPEED_L]) * 0.028); }
+    /// <summary>
+    /// Temperature in °C
+    /// </summary>
     public sbyte Temperature { get => (sbyte)PDU[POS_TEMP]; }
     public ParkStatus Parking { get => (ParkStatus)PDU[POS_PARKING]; }
     public bool IsParking { get => Parking == ParkStatus.PARKING_ON; }
@@ -57,6 +69,6 @@ public class ECUStatus : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return $"ECU Status: Mode {Mode}, {Current}mA, {Speed}km/h, {Temperature}°C, Parking: {IsParking}";
+        return $"ECU Status: Mode {Mode}, {Current}A, {Speed}km/h, {Temperature}°C, Parking: {IsParking}";
     }
 }
