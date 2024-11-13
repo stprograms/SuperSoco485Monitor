@@ -6,6 +6,7 @@ This file holds the Changelog of the project and all relevant changes.
 ### Modified
 - Added discharging cycles to BMS telegram
 - Added information from @pervolianinen regarding different interfaces
+- Added unit information for ECUStatus speed and current [#6](https://github.com/stprograms/SuperSoco485Monitor/issues/6)
 
 ## 1.1.1
 ### Fixed
