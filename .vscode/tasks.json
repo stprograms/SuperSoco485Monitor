@@ -21,7 +21,12 @@
                 "publish",
                 "${workspaceFolder}/RS485 Monitor.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-c",
+                "Release",
+                "--no-self-contained",
+                "-r",
+                "win-x64"
             ],
             "problemMatcher": "$msCompile"
         },
