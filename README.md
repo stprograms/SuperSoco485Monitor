@@ -53,12 +53,10 @@ Super Soco (at least TC Max), uses a JST SM 4 pin connector under the seat. This
 
 | Pin | Signal  |
 | --- | :-----: |
-| 1   |    ?    |
+| 1   | brake signal used to prevent movement when the charger is plugged in|
 | 2   | RX- / B |
 | 3   | RX+ / A |
-| 4   |    ?    |
-
-The signals on pin 1 and 4 are currently unknown.
+| 4   | Ground  |
 
 # RS485 Protocol
 The following information is taken from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) project and is sumarized here. All the information has been reverse engineered and can therefor hold errors and unknown data.
@@ -129,8 +127,8 @@ The following telegrams and packages of read responses are already decoded.
 | Variable      | Description         | Unit                | Data Type     |
 | ------------- | ------------------- | ------------------- | ------------- |
 | Mode          | Speed Mode          | 1 - 3               | unsigned byte |
-| Current [H/L] | Current consumption | [mA] ?              | unsigned word |
-| Speed [H/L]   | Current speed       | [km/h] ?            | unsigned word |
+| Current [H/L] | Current consumption | [0.1 A]             | unsigned word |
+| Speed [H/L]   | Current speed       | [0.028 km/h]        | unsigned word |
 | ECU Temp      | Temperature of ECU  | Degree Celcius [°C] | signed byte   |
 | Parking       | Parking mode        | 2 = on<br>1 = off   | unsigned byte |
 
