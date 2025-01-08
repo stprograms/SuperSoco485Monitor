@@ -162,25 +162,9 @@ The following telegrams and packages of read responses are already decoded.
 | Veilcle State               | Charging = 4, Parking=1,  else = 0, [Something?] = 10 . [Something?] related to Ctrler[7] . 
 | GearDisplay                 | = Ctrler[Gear]. 0~3, if(GearDisplay>3)will not display.
 | Speed From Ctrler           | = Ctrler[Speed]             
-| Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3 if(Battery disconnect) = 0
+| Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3, if(Battery disconnect) = 0
                 
 #### Res
-
-| Byte (len=10) |    0    |   1   |   2   |   3    |   4    |   5    |     6     |     7     |    8     |    9     |
-| ------------- | :-----: | :---: | :---: | :----: | :----: | :----: | :-------: | :-------: | :------: | :------: |
-|               | Voltage |  SoC  | Temp  | Charge | CycleH | CycleL | DisCycleH | DisCycleL | VBreaker | Charging |
-#### Description of the variables
-| Variable      | Description                                  | Unit                                                                                              | Data Type     |
-| ------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------- |
-| Voltage       | current Voltage of the Battery in V          | Volts[V]                                                                                          | unsigned byte |
-| SoC           | State of Charge in %                         | Percent [%]                                                                                       | unsigned byte |
-| Temp          | current temperatur of the BMS                | Degree C [°C]                                                                                     | signed byte   |
-| Charge        | current charging or discharging current in A | Ampere [A]                                                                                        | signed byte   |
-| Cycle[H/L]    | Number of loading cycles                     |                                                                                                   | unsigned word |
-| DisCycle[H/L] | Number of discharging cycles                 |                                                                                                   | unsigned word |
-| VBreaker      |                                              | 0 = OK<br>1 = bms stopped charge<br>2 = too high charge current<br>4 = too high discharge current | unsigned byte |
-| Charging      | Battery is currently charging                | 1 = charge<br>4 = discharge                                                                       | unsigned byte |
-
 
     Editing in progress...
 
