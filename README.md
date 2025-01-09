@@ -70,7 +70,7 @@ The communication is using **9600 Baud**, with 8 bit data and 1 stop bit. It is 
 ### Including but not limited to the following approaches:
 
 #### Unplugging and Re-plugging Physical Wiring:
-Dynamically unplug and re-plug the RS485 physical wiring to test the system's stability and response during communication interruptions and recovery.
+Dynamically unplug and re-plug the RS485 physical wiring to test the system's response during communication interruptions and recovery.
 #### Removing Components and Simulating Communication Packets:
 Remove a component and use a simulation tool to generate communication packets for the removed component. Test how the other components react to the simulated packets.
 #### Operating the Vehicle and Monitoring Packets:
@@ -148,10 +148,10 @@ The following telegrams and packages of read responses are already decoded.
 
 #### Req
 
-| Byte (len=10) |    0    |   1   |   2   |   3    |   4    |   5    |     6     |     7     |    8     |    9     |   10     |    11    |   12     |    13    |
-| ------------- | :-----: | :----------------: | :-----------: | :-------------: | :-: | :-: | :------: | :------: | :-----------: | :---------: | :---------------: | :----------------: | :-: | :-----------: |
+| Byte (len=14) |  0  |            1           |       2       |         3       |  4  |  5  |     6    |     7    |       8       |      9      |       10          |         11         | 12  |      13       |
+| ------------- | :-: | :--------------------: | :-----------: | :-------------: | :-: | :-: | :------: | :------: | :-----------: | :---------: | :---------------: | :----------------: | :-: | :-----------: |
 |               | Soc | Controller<br/>Current | SpeedDisplay  | Controller Temp | ?   |  ?  | Errcode0 | Errcode1 | Veilcle State | GearDisplay |Speed From Ctrler H|Speed From Ctrler L |  ?  |Remaining Range|
-#### Description of the variables
+##### Description of the variables
 | Variable                    | Description                                  
 | --------------------------- | -------------------------------------------- 
 | Soc                         | Battery percentage display ,Unit=%, 0~100  Soc>100 wil not display. value = last Battery[Soc] recieved.
@@ -159,24 +159,87 @@ The following telegrams and packages of read responses are already decoded.
 | SpeedDisplay                | speed(km/h) 0~127(estimated value), if(speed>127)The odometer in Speedmeter will treat values greater than 127 as 127.</br> Related to Ctrler[Speed], SpeedDisplay = Ctrler[speed]*0.11
 | CtlerTempDisplay            | 0~9,if(CtlerTempDisplay>10)Will not display on speedmeter.CtlerTempDisplay = Ctrler[temp]/20.
 | Errcode                     | See the Error Code Table for details.                                            
-| Veilcle State               | Charging = 4, Parking=1,  else = 0, [Something?] = 10 . [Something?] related to Ctrler[7] . 
+| Veilcle State               | Charging = 4, Parking=1,  else = 0, [Something?] = 10 . [Something?] related to Ctrler[UnKnown State] . 
 | GearDisplay                 | = Ctrler[Gear]. 0~3, if(GearDisplay>3)will not display.
 | Speed From Ctrler           | = Ctrler[Speed]             
 | Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3, if(Battery disconnect) = 0
                 
 #### Res
 
-    Editing in progress...
+| Byte (len=1)  |    0    |
+| ------------- | :-----: |
+|               |    ?    |
 
 ### Controller
 #### Req
+| Byte (len=2)  |    0    |       1        |
+| ------------- | :-----: | :------------: |
+|               |    ?    | Charging State |
+##### Description of the variables
+| Variable                    | Description                                  
+| --------------------------- | -------------------------------------------- 
+|  Charging State             |if(Battery[Charging] == 1) Charging State = 1; if Ctrler receieved (Charging State = 1), motor can't start running.
+
 #### Res
+
+| Byte (len=10) |      0     |      1     |      2     |     3    |    4     |   5    |     6     |       7       |    8     |    9     |  
+| ------------- | :--------: |----------: | :--------: | :------: | :------: | :----: | :-------: | :-----------: | :------: | :------: |
+|               |    Gear    | Currnet(H) | Currnet(L) | Speed(H) | Speed(L) |  Temp  | ErrorCode | Unknown State |  Parking |    ?     |
+
+##### Description of the variables
+| Variable                    | Description                                  
+| --------------------------- | -------------------------------------------- 
+| Gear | change by (Mode switch on Right Switch)  =  1,2,3 
+| Current | 0.1A
+| Speed | 0.028 km/h
+| Temp |Ctrler Temp °C
+| ErrorCode | See the Error Code Table for details
+|Unknown State |Something? = 2, will change Vechicle State to 0x10
+|Parking |change by (Side Stand), Parking = 2,else = 1
+
 ### Battery
 #### Req
+| Byte (len=1)  |    0    |
+| ------------- | :-----: | 
+|               |    ?    | 
 #### Res
+
+| Byte (len=10) |      0     |      1     |      2     |     3    |    4     |      5     |      6      |       7       |      8      |    9     |  
+| ------------- | :--------: |----------: | :--------: | :------: | :------: | :--------: | :---------: | :-----------: | :---------: | :------: |
+|               |    Volt    |     Soc    |    Temp    |  Current | Cycle(H) |  Cycle(L)  | Discycle(H) |  Discycle(L)  |  Error Code | Charging |
+
+##### Description of the variables
+| Variable                    | Description                                  
+| --------------------------- | -------------------------------------------- 
+| Volt|1V
+| Soc|%
+|Temp|°C
+|Current| A, if(Current<0)means discharging Current.
+|Cycle|Number of loading cycles
+|Discycle|Number of discharging cycles
+|ErrorCOde|See the Error Code Table for details
+|Charging| Charging = 1 , (Discharging = 4?,not observed.Cause BMS diff?)
+
 ### Error Codes
 
+| Byte | Bit | ErrorCode | Report Unit | Report Bit |Other
+|----- | ----|-----------|-------------|------------|----
+|6|0|99|Ctrler|Disconnect|
+|6|1|98|Ctrler|Ctrler(6,1|2|4|5)|over current?</br> motor blocking= bit5</br> under voltage = bit4</br> over temperature?
+|6|2|97|Ctrler|Ctrler(6,0)
+|6|3|96|Ctrler|Ctrler(6,0)
+|6|4|95|Ctrler|Ctrler(6,6)
+|6|5|94|Battery|Disconnect
+|6|6|93|Battery|Battery(8,1)
+|6|7|92|Battery|Battery(8,0)
+|7|0|91|Battery|Battery[Temp]>=3B(60°C)
+|7|1|90|Battery|Battery(8,2)
+|7|2|89|Battery|Battery(8,5)
+|7|3|88|Battery|Battery(8,7)
+|7|4|87|X|
+|7|5|86|X|
 
+*ctrler(1,2)means the bit is at ctrler pdu byte 1,bit 2
 
 ## Additional notes
 As @pervolianinen stated in https://github.com/stprograms/SuperSoco485Monitor/issues/2#issuecomment-1676308814, this is a generic protocol that is used in all Lingbo controllers. Using specific hardware converters, the monitor application can be use on these interfaces too. For CAN, this would also need enhancement in how the data is extracted.
