@@ -1,11 +1,31 @@
-name: Build Application
-on: [push, workflow_dispatch]
-jobs:
-    build:
-        name: Build application
-        runs-on: ubuntu_latest
-        steps:
-            - name: Checkout code
-              run: echo "Hello World"
+name: .NET 
 
-        
+on: [push, workflow_dispatch]
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest  # For a list of available runner types, refer to
+                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build application
+      run: dotnet build
+      
