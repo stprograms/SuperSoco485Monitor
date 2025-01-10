@@ -1,4 +1,4 @@
-name: .NET 
+name: .NET Workflow for test building
 
 on: [push, workflow_dispatch]
   # push:
