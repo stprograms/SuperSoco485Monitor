@@ -146,7 +146,7 @@ if (calcCheck == checksum)
 The following telegrams and packages of read responses are already decoded.
 
 ### SpeedMeter 
-![image](https://github.com/user-attachments/assets/8b8299dc-74eb-4cf4-aa04-b69a3b9bc68f)
+![image](res/speedometer.png)
 
 #### Req
 
@@ -164,7 +164,7 @@ The following telegrams and packages of read responses are already decoded.
 | Veilcle State               | Charging = 4, Parking=1,  else = 0, [Something?] = 10 . [Something?] related to Ctrler[UnKnown State] . 
 | GearDisplay                 | = Ctrler[Gear]. 0~3, if(GearDisplay>3)will not display.
 | Speed From Ctrler           | = Ctrler[Speed]             
-| Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3, if(Battery disconnect) = 0
+| Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3, if(Battery disconnect) = 0
                 
 #### Res
 
