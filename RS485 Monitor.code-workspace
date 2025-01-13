@@ -4,5 +4,17 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+			"appsettings",
+			"Discycle",
+			"Errcode",
+			"Lingbo",
+			"nlog",
+			"pervolianinen",
+			"Soco",
+			"undervoltage",
+			"Xmanu"
+		]
+	}
 }
