@@ -243,15 +243,24 @@ If the last provided charging state is 1, the controller will prevent the motor 
 |               | Gear  | Current(H) | Current(L) | Speed(H) | Speed(L) | Temperature | ErrorCode | Unknown State | Parking |   ?   |
 
 #### Field description
-| Variable      | Description                                          |    Unit    | Range                  |
-| ------------- | ---------------------------------------------------- | :--------: | ---------------------- |
-| Gear          | current gear, selected by switch on level            |     -      | 1 - 3                  |
-| Current       | current drawn by the motor                           |    0.1A    |                        |
-| Speed         | current speed                                        | 0.028 km/h |                        |
-| Temperature   | Controller temperature                               |     °C     |                        |
-| ErrorCode     | See the [error code table](#error-codes) for details |     -      |                        |
-| Unknown State | Something? = 2, will change Vehicle State to 0x10    |     -      |                        |
-| Parking       | parking mode (depends on the side stand)             |     -      | Parking = 1 / Else = 2 |
+| Variable      | Description                                          |    Unit    | Range            |
+| ------------- | ---------------------------------------------------- | :--------: | ---------------- |
+| Gear          | current gear, selected by switch on level            |     -      | 1 - 3            |
+| Current       | current drawn by the motor                           |    0.1A    |                  |
+| Speed         | current speed                                        | 0.028 km/h |                  |
+| Temperature   | Controller temperature                               |     °C     |                  |
+| ErrorCode     | See the [error code table](#error-codes) for details |     -      |                  |
+| Unknown State | Something? = 2, will change Vehicle State to 0x10    |     -      |                  |
+| Parking       | parking mode (depends on the side stand)             |     -      | on = 2 / off = 1 |
+
+
+#### Parking
+This seems to depend on the software version of the controller. Some people reported that the interpretation of parking is inverted:
+
+| Value | Mode          |
+| :---: | ------------- |
+|   1   | park mode on  |
+|   2   | park mode off |
 
 ## Battery
 These telegrams are send to / received from the battery management system of the battery.
