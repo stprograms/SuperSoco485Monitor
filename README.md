@@ -109,11 +109,11 @@ The communication inside the bike consists of the following identified telegrams
 | :----------------------------------------- | :---------- | :---------- | :---: | ---------: |
 | [Speedometer_Req](#speedometer---request)  | Speedometer | Master      | BA AA |         14 |
 | [Speedometer_Res](#speedometer---response) | Master      | Speedometer | AA BA |          1 |
-| Controller_Req                             | Controller  | Master      | DA AA |          2 |
-| Controller_Res                             | Master      | Controller  | AA DA |         10 |
-| Battery_Req                                | Battery     | Master      | 5A AA |          1 |
-| Battery_Res                                | Master      | Battery     | AA 5A |         10 |
-|                                            |
+| [Controller_Req](#controller---request)    | Controller  | Master      | DA AA |          2 |
+| [Controller_Res](#controller---response)   | Master      | Controller  | AA DA |         10 |
+| [Battery_Req](#battery---request)          | Battery     | Master      | 5A AA |          1 |
+| [Battery_Res](#battery---response)         | Master      | Battery     | AA 5A |         10 |
+
 ## Checksum calculation
 The checksum byte is calculated by making an XOR calculation of the data Bytes and the length Byte. The following C# example shall deepen the understanding how the checksum is calculated.
 
@@ -178,7 +178,7 @@ else
 ```
 
 ##### SpeedDisplay
-Current vehicle speed in km/h. The odometer in the Speedometer will treat values greater than 127 as 127. The value is calculated as follows:
+Current vehicle speed in km/h. The odometer in the Speedometer will treat values greater than 127 as 127. The base value is taken from the [engine controller](#controller---response) and is calculated as follows:
 
 ```c#
 // SpeedDisplay: Value sent to the speedometer
@@ -188,7 +188,7 @@ SpeedDisplay = Ctrl[speed] * 0.11;
 ```
 
 ##### CtrlTempDisplay
-Temperature level of the controller displayed on the speedometer (5). This value is calculated based on the last temperature value received from the controller. Values greater than 10 will not be displayed by the Speedometer.
+Temperature level of the controller displayed on the speedometer (5). This value is calculated based on the last temperature value received from the [engine controller](#controller---response). Values greater than 10 will not be displayed by the Speedometer.
 
 ```c#
 // CtrlTempDisplay: Value send to the speedometer
@@ -220,77 +220,92 @@ The response of the speedometer only holds 1 Byte of data. The interpretation of
 |              |   ?   |
 
 ## Controller
+Engine controller
+
 ### Controller - Request
+This request is sent from the master to the controller. It informs the controller with the current charging state. This will also trigger the controller to send a [response](#controller---response).
+
 | Byte (len=2) |   0   |       1        |
 | ------------ | :---: | :------------: |
 |              |   ?   | Charging State |
 
 #### Field description
-| Variable       | Description                                                                                                      |
-| -------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Charging State | if(Battery[Charging] == 1) Charging State = 1; if Ctrl received (Charging State = 1), motor can't start running. |
+| Variable       | Description                                                      | Unit    | Range |
+| -------------- | ---------------------------------------------------------------- | ------- | ----- |
+| Charging State | Informs the controller if the motorcycle is been charged or not. | Boolean | 0 / 1 |
+
+If the last provided charging state is 1, the controller will prevent the motor from starting. If the last transmitted state was 0, the motor is allowed to start. The charging information is provided by the [Battery](#battery---response) and will be forwarded to the controller.
 
 ### Controller - Response
 
-| Byte (len=10) |   0   |          1 |     2      |    3     |    4     |   5   |     6     |       7       |    8    |   9   |
-| ------------- | :---: | ---------: | :--------: | :------: | :------: | :---: | :-------: | :-----------: | :-----: | :---: |
-|               | Gear  | Current(H) | Current(L) | Speed(H) | Speed(L) | Temp  | ErrorCode | Unknown State | Parking |   ?   |
+| Byte (len=10) |   0   |     1      |     2      |    3     |    4     |      5      |     6     |       7       |    8    |   9   |
+| ------------- | :---: | :--------: | :--------: | :------: | :------: | :---------: | :-------: | :-----------: | :-----: | :---: |
+|               | Gear  | Current(H) | Current(L) | Speed(H) | Speed(L) | Temperature | ErrorCode | Unknown State | Parking |   ?   |
 
 #### Field description
-| Variable      | Description                                       |
-| ------------- | ------------------------------------------------- |
-| Gear          | change by (Mode switch on Right Switch)  =  1,2,3 |
-| Current       | 0.1A                                              |
-| Speed         | 0.028 km/h                                        |
-| Temp          | Ctrl Temp °C                                      |
-| ErrorCode     | See the Error Code Table for details              |
-| Unknown State | Something? = 2, will change Vehicle State to 0x10 |
-| Parking       | change by (Side Stand), Parking = 2,else = 1      |
+| Variable      | Description                                          |    Unit    | Range                  |
+| ------------- | ---------------------------------------------------- | :--------: | ---------------------- |
+| Gear          | current gear, selected by switch on level            |     -      | 1 - 3                  |
+| Current       | current drawn by the motor                           |    0.1A    |                        |
+| Speed         | current speed                                        | 0.028 km/h |                        |
+| Temperature   | Controller temperature                               |     °C     |                        |
+| ErrorCode     | See the [error code table](#error-codes) for details |     -      |                        |
+| Unknown State | Something? = 2, will change Vehicle State to 0x10    |     -      |                        |
+| Parking       | parking mode (depends on the side stand)             |     -      | Parking = 1 / Else = 2 |
 
 ## Battery
+These telegrams are send to / received from the battery management system of the battery.
+
 ### Battery - Request
+This request is sent from the master to the BMS to request the current battery state. It holds no (known) data.
+
 | Byte (len=1) |   0   |
 | ------------ | :---: |
 |              |   ?   |
 
 ### Battery - Response
 
-| Byte (len=10) |   0   |    1 |   2   |    3    |    4     |    5     |      6      |      7      |     8      |    9     |
-| ------------- | :---: | ---: | :---: | :-----: | :------: | :------: | :---------: | :---------: | :--------: | :------: |
-|               | Volt  |  Soc | Temp  | Current | Cycle(H) | Cycle(L) | Discycle(H) | Discycle(L) | Error Code | Charging |
+The response returned by the BMS upon a request telegram.
+
+| Byte (len=10) |   0   |   1   |   2   |    3    |    4     |    5     |      6      |      7      |     8      |    9     |
+| ------------- | :---: | :---: | :---: | :-----: | :------: | :------: | :---------: | :---------: | :--------: | :------: |
+|               | Volt  |  Soc  | Temp  | Current | Cycle(H) | Cycle(L) | Discycle(H) | Discycle(L) | Error Code | Charging |
 
 #### Field description
-| Variable  | Unit | Description                                                    |
-| --------- | ---- | -------------------------------------------------------------- |
-| Volt      | V    |                                                                |
-| Soc       | %    |                                                                |
-| Temp      | °C   |                                                                |
-| Current   | A    | if(Current<0)means discharging Current.                        |
-| Cycle     | -    | Number of loading cycles                                       |
-| Discycle  | -    | Number of discharging cycles                                   |
-| ErrorCode | -    | See the Error Code Table for details                           |
-| Charging  | -    | Charging = 1 , (Discharging = 4?,not observed.Cause BMS diff?) |
+| Variable  | Unit | Description                                                      |
+| --------- | ---- | ---------------------------------------------------------------- |
+| Volt      | V    | Voltage value of the battery                                     |
+| Soc       | %    | State of charge in percent                                       |
+| Temp      | °C   | Temperature of the battery                                       |
+| Current   | A    | Charge or discharge current. [Additional info](#current)         |
+| Cycle     | -    | Number of loading cycles                                         |
+| Discycle  | -    | Number of discharging cycles                                     |
+| ErrorCode | -    | See the [error code table](#error-codes) for details             |
+| Charging  | -    | Charging = 1 , (Discharging = 4?, not observed. Cause BMS diff?) |
+
+#### Current
+Current fed into or taken from the battery. Values < 0 describe discharge of the battery.
 
 ## Error Codes
 
-| Byte | Bit | ErrorCode | Report Unit | Report Bit               | Other                                                                                    |
-| ---- | --- | --------- | ----------- | ------------------------ | ---------------------------------------------------------------------------------------- |
-| 6    | 0   | 99        | Ctrl        | Disconnect               |                                                                                          |
-| 6    | 1   | 98        | Ctrl        | Ctrl(6,1 \| 2 \| 4 \| 5) | over current?</br> motor blocking= bit5</br> under voltage = bit4</br> over temperature? |
-| 6    | 2   | 97        | Ctrl        | Ctrl(6,0)                |                                                                                          |
-| 6    | 3   | 96        | Ctrl        | Ctrl(6,0)                |                                                                                          |
-| 6    | 4   | 95        | Ctrl        | Ctrl(6,6)                |                                                                                          |
-| 6    | 5   | 94        | Battery     | Disconnect               |                                                                                          |
-| 6    | 6   | 93        | Battery     | Battery(8,1)             |                                                                                          |
-| 6    | 7   | 92        | Battery     | Battery(8,0)             |                                                                                          |
-| 7    | 0   | 91        | Battery     | Battery[Temp]>=3B(60°C)  |                                                                                          |
-| 7    | 1   | 90        | Battery     | Battery(8,2)             |                                                                                          |
-| 7    | 2   | 89        | Battery     | Battery(8,5)             |                                                                                          |
-| 7    | 3   | 88        | Battery     | Battery(8,7)             |                                                                                          |
-| 7    | 4   | 87        | X           |                          |                                                                                          |
-| 7    | 5   | 86        | X           |                          |                                                                                          |
+| Byte | Bit | ErrorCode | Report Unit | Report Bit                | Other                                                                                    |
+| ---- | --- | --------- | ----------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| 6    | 0   | 99        | Ctrl        | Disconnect                |                                                                                          |
+| 6    | 1   | 98        | Ctrl        | Ctrl (6,1 \| 2 \| 4 \| 5) | over current?</br> motor blocking= bit5</br> under voltage = bit4</br> over temperature? |
+| 6    | 2   | 97        | Ctrl        | Ctrl (6,0)                |                                                                                          |
+| 6    | 3   | 96        | Ctrl        | Ctrl (6,0)                |                                                                                          |
+| 6    | 4   | 95        | Ctrl        | Ctrl (6,6)                |                                                                                          |
+| 6    | 5   | 94        | Battery     | Disconnect                |                                                                                          |
+| 6    | 6   | 93        | Battery     | Battery (8,1)             |                                                                                          |
+| 6    | 7   | 92        | Battery     | Battery (8,0)             |                                                                                          |
+| 7    | 0   | 91        | Battery     | Battery[Temp] >= 3B(60°C) |                                                                                          |
+| 7    | 1   | 90        | Battery     | Battery (8,2)             |                                                                                          |
+| 7    | 2   | 89        | Battery     | Battery (8,5)             |                                                                                          |
+| 7    | 3   | 88        | Battery     | Battery (8,7)             |                                                                                          |
+| 7    | 4   | 87        | X           |                           |                                                                                          |
+| 7    | 5   | 86        | X           |                           |                                                                                          |
 
-*Ctrl(1,2)means the bit is at Ctrl pdu byte 1,bit 2
+Ctrl(1,2) means the bit is at Ctrl pdu byte 1, bit 2
 
 
 ## Testing Method
@@ -303,7 +318,7 @@ Dynamically unplug and re-plug the RS485 physical wiring to test the system's re
 Remove a component and use a simulation tool to generate communication packets for the removed component. Test how the other components react to the simulated packets.
 
 ### Operating the vehicle and monitoring packets:
-Operate the vehicle (e.g., accelerate, decelerate) and monitor the RS485 communication data to verify that the packets correspond to changes in the vehicle’s status.
+Operate the vehicle (e.g., accelerate, decelerate) and monitor the RS485 communication data to verify that the packets correspond to changes in the vehicle's status.
 
 ### Triggering vehicle status via external input:
 Use external devices (such as controlling the power supply to replace the battery) to simulate specific vehicle conditions, such as triggering undervoltage, and monitor the system’s response.
