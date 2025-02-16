@@ -79,7 +79,7 @@ This system is a two-wire RS485 communication system and includes four different
 
 ## Generic information and structure
 
-Each telegram starts with two bytes specifying a request or a response, followed by one byte source (id) and one byte destination (id). After that, the length of the user data in Bytes and the data itself is transmitted. Lastly, a one byte checksum and the end tag 0x0D terminates the telegram.
+Each telegram starts with two bytes specifying a request or a response, followed by one byte destination (id) and one byte source (id). After that, the length of the user data in Bytes and the data itself is transmitted. Lastly, a one byte [checksum](#checksum-calculation) and the end tag 0x0D terminates the telegram.
 
 | Byte |   0   |   1   |   2   |   3    |    4    |  4 + 1  |  4 + 2  |  ...  |   4 + n   | 4 + n + 1 | 4 + n + 2 |
 | :--- | :---: | :---: | :---: | :----: | :-----: | :-----: | :-----: | :---: | :-------: | :-------: | :-------: |
