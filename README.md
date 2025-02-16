@@ -62,65 +62,58 @@ SuperSoco (at least TC Max), uses a JST SM 4 pin connector under the seat. This 
 The brake signal is used to prevent movement when the charger is plugged in.
 
 # RS485 Protocol
-The following information is taken from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) project and is summarized here. All the information has been reverse engineered and can therefor hold errors and unknown data.
+The following information is basically taken from the [Dashboard Android App](https://github.com/Xmanu12/SuSoDevs) project and is summarized here. Thank to @linshuweitw who did intensive testing, further insights on the protocol and the packages where gettered.
 
-The communication is using **9600 Baud**, with 8 bit data and 1 stop bit. It is based on Read requests and Read responses and data is transmitted in telegrams.
+All the information has been reverse engineered and can therefor hold errors and unknown data.
 
-## Testing Method
-
-### Including but not limited to the following approaches:
-
-#### Unplugging and Re-plugging Physical Wiring:
-Dynamically unplug and re-plug the RS485 physical wiring to test the system's response during communication interruptions and recovery.
-#### Removing Components and Simulating Communication Packets:
-Remove a component and use a simulation tool to generate communication packets for the removed component. Test how the other components react to the simulated packets.
-#### Operating the Vehicle and Monitoring Packets:
-Operate the vehicle (e.g., accelerate, decelerate) and monitor the RS485 communication data to verify that the packets correspond to changes in the vehicle’s status.
-#### Triggering Vehicle Status via External Input:
-Use external devices (such as controlling the Power Supply to replace the battery) to simulate specific vehicle conditions, such as triggering undervoltage, and monitor the system’s response.
+The communication is using **9600 Baud**, with 8 bit data and 1 stop bit. It is based on requests and responses and data is transmitted in telegrams.
 
 ## System and Unit
 This system is a two-wire RS485 communication system and includes four different units:
-| Unit      |Description| 
-| :---------|:----------------------|
-|ECU        |Master,<br/> sending request,receiving responses, consolidating system information.|
-|SpeedMeter |Displays the vehicle's status.<br/> If the ECU is absent from the system,the SpeedMeter takes over as the Master,<br/>  but it only sends out requests without altering its state based on the responses received.|
-|Controller |Control Motor,Returns Response. |
-|Battery    |Power,Returns Response.|
+| Unit        | Summary                       | Description                                                                                                                                                                |
+| :---------- | :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ECU         | Communication master          | sends requests, receiving responses, consolidating system information.                                                                                                     |
+| Speedometer | Displays the vehicle's status | If the ECU is absent from the system, the Speedometer takes over as the master, but it only sends out requests without altering its state based on the responses received. |
+| Controller  | Engine control                | Returns Response.                                                                                                                                                          |
+| Battery     | Power Supply                  | Returns Response.                                                                                                                                                          |
 
 ## Generic information and structure
 
 Each telegram starts with two bytes specifying a request or a response, followed by one byte source (id) and one byte destination (id). After that, the length of the user data in Bytes and the data itself is transmitted. Lastly, a one byte checksum and the end tag 0x0D terminates the telegram.
 
-| Byte |   0   |   1   |   2    |   3   |    4    |  4 + 1  |  4 + 2  |  ...  |   4 + n   | 4 + n + 1 | 4 + n + 2 |
-| :--- | :---: | :---: | :----: | :---: | :-----: | :-----: | :-----: | :---: | :-------: | :-------: | :-------: |
-|      | type1 | type2 | dest | source  | len (n) | data[0] | data[1] |  ...  | data[n-1] | checksum  |   0x0D    |
+| Byte |   0   |   1   |   2   |   3    |    4    |  4 + 1  |  4 + 2  |  ...  |   4 + n   | 4 + n + 1 | 4 + n + 2 |
+| :--- | :---: | :---: | :---: | :----: | :-----: | :-----: | :-----: | :---: | :-------: | :-------: | :-------: |
+|      | type1 | type2 | dest  | source | len (n) | data[0] | data[1] |  ...  | data[n-1] | checksum  |   0x0D    |
 
+### Telegram types
 There are two known combinations for the type:
-| Byte0 | Byte1 | Type          |
-| ----: | :---- | ------------- |
-|  0xC5 | 0x5C  | Request  |
-|  0xB6 | 0x6B  | Response |
+| Byte0 | Byte1 | Type     | Description                                                |
+| ----: | :---- | -------- | ---------------------------------------------------------- |
+|  0xC5 | 0x5C  | Request  | Telegram **actively** send by the master to a unit         |
+|  0xB6 | 0x6B  | Response | Telegram send in response to a previously received request |
 
-Four types addr::
-| Addr   | Type     |
-| ----:  | :------- |
-| 0xAA   |Master    |
-| 0xBA   |Speedometer|
-| 0xDA   |Controller|
-| 0x5A   |Battery   |
+### Unit addresses
+The following addresses of the units could be identified. The addresses are used either as source or as destination in the telegram fields
 
-Six Types Package:
+| Addr | Type        |
+| :--- | :---------- |
+| 0xAA | Master      |
+| 0xBA | Speedometer |
+| 0xDA | Controller  |
+| 0x5A | Battery     |
 
-| Package Type     | Dest       | Src        | PduLen  |
-| :--------------  | :--------  | :--------- |:------- |
-| Speedometer_Req  | SpeedMeter | Master     | 14      |
-| Speedometer_Res  | Master     | SpeedMeter | 1       |
-| Controller_Req   | Controller | Master     | 2       |
-| Controller_Res   | Master     | Controller | 10      |
-| Battery_Req      | Battery    | Master     | 1       |
-| Battery_Res      | Master     | Battery    | 10      |
+### Telegrams
+The communication inside the bike consists of the following identified telegrams:
 
+| Package Type                               | Destination | Source      | Bytes | Pdu Length |
+| :----------------------------------------- | :---------- | :---------- | :---: | ---------: |
+| [Speedometer_Req](#speedometer---request)  | Speedometer | Master      | BA AA |         14 |
+| [Speedometer_Res](#speedometer---response) | Master      | Speedometer | AA BA |          1 |
+| Controller_Req                             | Controller  | Master      | DA AA |          2 |
+| Controller_Res                             | Master      | Controller  | AA DA |         10 |
+| Battery_Req                                | Battery     | Master      | 5A AA |          1 |
+| Battery_Res                                | Master      | Battery     | AA 5A |         10 |
+|                                            |
 ## Checksum calculation
 The checksum byte is calculated by making an XOR calculation of the data Bytes and the length Byte. The following C# example shall deepen the understanding how the checksum is calculated.
 
@@ -141,107 +134,179 @@ if (calcCheck == checksum)
 
 ```
 
-## Decoded telegrams
-The following telegrams and packages of read responses are already decoded.
+# Decoded telegrams
+The following chapter holds the list of telegrams that are (partly) decoded. Like described in the beginning, there is no guarantee for correctness and completeness.
 
-### SpeedMeter 
+## Speedometer
 ![image](res/speedometer.png)
 
-#### Req
+### Speedometer - Request
+This is a request actively send from the master to the speedometer. It holds information to be displayed on the speedometer itself.
 
-| Byte (len=14) |  0  |            1           |       2       |         3       |  4  |  5  |     6    |     7    |       8       |      9      |       10          |         11         | 12  |      13       |
-| ------------- | :-: | :--------------------: | :-----------: | :-------------: | :-: | :-: | :------: | :------: | :-----------: | :---------: | :---------------: | :----------------: | :-: | :-----------: |
-|               | Soc | Controller<br/>Current | SpeedDisplay  | Controller Temp | ?   |  ?  | Errcode0 | Errcode1 | Vehicle State | GearDisplay |Speed From Ctrl H|Speed From Ctrl L |  ?  |Remaining Range|
+| Byte (len=14) |   0   |           1            |      2       |        3        |   4   |   5   |    6     |    7     |       8       |      9      |        10         |        11         |  12   |       13        |
+| ------------- | :---: | :--------------------: | :----------: | :-------------: | :---: | :---: | :------: | :------: | :-----------: | :---------: | :---------------: | :---------------: | :---: | :-------------: |
+|               |  Soc  | Controller<br/>Current | SpeedDisplay | Controller Temp |   ?   |   ?   | Errcode0 | Errcode1 | Vehicle State | GearDisplay | Speed From Ctrl H | Speed From Ctrl L |   ?   | Remaining Range |
 
-##### Description of the variables
-| Variable                    | Description                                  
-| --------------------------- | -------------------------------------------- 
-| Soc                         | Battery percentage display ,Unit=%, 0~100  Soc>100 wil not display. value = last Battery[Soc] received.
-| CtrlCurrent                 | 0x00 ~ 0x19 =  0 ~ 30A, Unit = 2.5A ,Related to Ctrl[Current].if(Ctrl[Current]>30A)CtrlCurrent = 30,else CtrlCurrent = Ctrl[Current];
-| SpeedDisplay                | speed(km/h) 0~127(estimated value), if(speed>127)The odometer in Speedometer will treat values greater than 127 as 127.</br> Related to Ctrl[Speed], SpeedDisplay = Ctrl[speed]*0.11
-| CtlTempDisplay              | 0~9,if(CtlTempDisplay>10)Will not display on speedometer.CtlTempDisplay = Ctrl[temp]/20.
-| Errcode                     | See the Error Code Table for details.                                            
-| Vehicle State               | Charging = 4, Parking=1,  else = 0, [Something?] = 10 . [Something?] related to Ctrl[UnKnown State] . 
-| GearDisplay                 | = Ctrl[Gear]. 0~3, if(GearDisplay>3)will not display.
-| Speed From Ctrl             | = Ctrl[Speed]             
-| Remaining Range             | Soc*F(Gear), F(x) =1-((x-1)*0.2), Gear=1,2,3, if(Battery disconnect) = 0
-                
-#### Res
+#### Field description
+| Variable        | Description                            | Unit | Range                    |                                                                                                      |
+| --------------- | -------------------------------------- | ---- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Soc             | Battery percentage display             | %    | 0 - 100                  | Soc > 100 wil not display. value = last Soc received from Battery.                                   |
+| CtrlCurrent     | Current taken by the engine controller | 2.5A | 0x00 - 0x19 (0 ~ 30A)    | [Additional info](#ctlrcurrent)                                                                      |
+| SpeedDisplay    | Speed to display                       | km/h | 0 - 127(estimated value) | [Additional info](#speeddisplay)                                                                     |
+| CtrlTempDisplay | Temperature level of Controller        | -    | 0 - 9                    | [Additional info](#ctrltempdisplay)                                                                  |
+| Errcode         | Error code to display                  | -    | -                        | See the [Error Code Table](#error-codes) for details                                                 |
+| Vehicle State   | State of the vehicle                   | -    | -                        | Charging = 4, Parking = 1, else = 0, *Something* = 10 . *Something* related to Ctrl[Unknown state] . |
+| GearDisplay     | Selected gear                          | -    | 0 - 3                    | Values > 3 will not be displayed                                                                     |
+| Speed From Ctrl | Raw speed value from controller        | -    | -                        | [Additional info](#speeddisplay)                                                                     |
+| Remaining Range | Calculated remaining range             | km   | 0-255                    | [Additional info](#remaining-range)                                                                  |
 
-| Byte (len=1)  |    0    |
-| ------------- | :-----: |
-|               |    ?    |
+##### CtlrCurrent
+Related to the last current value submitted by the [engine controller](#controller---response). The highest value that will be submitted here equals 30A.
 
-### Controller
-#### Req
-| Byte (len=2)  |    0    |       1        |
-| ------------- | :-----: | :------------: |
-|               |    ?    | Charging State |
-##### Description of the variables
-| Variable                    | Description                                  
-| --------------------------- | -------------------------------------------- 
-|  Charging State             |if(Battery[Charging] == 1) Charging State = 1; if Ctrl received (Charging State = 1), motor can't start running.
+```c#
+// CtrlCurrent: Value sent to speedometer
+// Ctrl[Current]: last received value for current from engine controller
 
-#### Res
+if (Ctrl[Current] > 30)
+{
+    CtrlCurrent = 30;
+}
+else
+{
+    CtrlCurrent = Ctrl[Current];
+}
+```
 
-| Byte (len=10) |      0     |      1     |      2     |     3    |    4     |   5    |     6     |       7       |    8     |    9     |  
-| ------------- | :--------: |----------: | :--------: | :------: | :------: | :----: | :-------: | :-----------: | :------: | :------: |
-|               |    Gear    | Current(H) | Current(L) | Speed(H) | Speed(L) |  Temp  | ErrorCode | Unknown State |  Parking |    ?     |
+##### SpeedDisplay
+Current vehicle speed in km/h. The odometer in the Speedometer will treat values greater than 127 as 127. The value is calculated as follows:
 
-##### Description of the variables
-| Variable                    | Description                                  
-| --------------------------- | -------------------------------------------- 
-| Gear | change by (Mode switch on Right Switch)  =  1,2,3 
-| Current | 0.1A
-| Speed | 0.028 km/h
-| Temp |Ctrl Temp °C
-| ErrorCode | See the Error Code Table for details
-|Unknown State |Something? = 2, will change Vehicle State to 0x10
-|Parking |change by (Side Stand), Parking = 2,else = 1
+```c#
+// SpeedDisplay: Value sent to the speedometer
+// Ctrl[speed]: last received speed value received from engine controller
 
-### Battery
-#### Req
-| Byte (len=1)  |    0    |
-| ------------- | :-----: | 
-|               |    ?    | 
-#### Res
+SpeedDisplay = Ctrl[speed] * 0.11;
+```
 
-| Byte (len=10) |      0     |      1     |      2     |     3    |    4     |      5     |      6      |       7       |      8      |    9     |  
-| ------------- | :--------: |----------: | :--------: | :------: | :------: | :--------: | :---------: | :-----------: | :---------: | :------: |
-|               |    Volt    |     Soc    |    Temp    |  Current | Cycle(H) |  Cycle(L)  | Discycle(H) |  Discycle(L)  |  Error Code | Charging |
+##### CtrlTempDisplay
+Temperature level of the controller displayed on the speedometer (5). This value is calculated based on the last temperature value received from the controller. Values greater than 10 will not be displayed by the Speedometer.
 
-##### Description of the variables
-| Variable  | Unit | Description |
-| --------- | -----|--------------------------------------- |
-| Volt      | V | |
-| Soc       | % | |
-|Temp       | °C| |
-|Current    | A | if(Current<0)means discharging Current. |
-|Cycle      | - | Number of loading cycles |
-|Discycle   | - | Number of discharging cycles|
-|ErrorCode  | - | See the Error Code Table for details |
-|Charging   | - | Charging = 1 , (Discharging = 4?,not observed.Cause BMS diff?) |
+```c#
+// CtrlTempDisplay: Value send to the speedometer
+// Ctrl[temp]: Temperature value received from controller
+CtlTempDisplay = Ctrl[temp] / 20;
+```
 
-### Error Codes
+##### Remaining Range
+The remaining range is being calculated based on the remaining SoC received from the Battery and the selected gear.
 
-| Byte | Bit | ErrorCode | Report Unit | Report Bit |Other |
-|----- | ----|-----------|-------------|------------|----|
-|6|0|99|Ctrl|Disconnect||
-|6|1|98|Ctrl|Ctrl(6,1|2|4|5)|over current?</br> motor blocking= bit5</br> under voltage = bit4</br> over temperature? |
-|6|2|97|Ctrl|Ctrl(6,0) | |
-|6|3|96|Ctrl|Ctrl(6,0) | |
-|6|4|95|Ctrl|Ctrl(6,6) | |
-|6|5|94|Battery|Disconnect | |
-|6|6|93|Battery|Battery(8,1) ||
-|6|7|92|Battery|Battery(8,0) ||
-|7|0|91|Battery|Battery[Temp]>=3B(60°C) ||
-|7|1|90|Battery|Battery(8,2) ||
-|7|2|89|Battery|Battery(8,5) ||
-|7|3|88|Battery|Battery(8,7)||
-|7|4|87|X|||
-|7|5|86|X|||
+```c#
+/* gear: currently selected gear (1-3) or 0 if battery is disconnected
+ * soc: state of charge received from battery
+ * range: transmitted remaining range in km
+ */
+float f (int gear)
+{
+    return 1 - ( (gear - 1) * 0.2);
+}
+
+range = (byte) (soc * f(gear));
+```
+
+### Speedometer - Response
+The response of the speedometer only holds 1 Byte of data. The interpretation of this Byte is currently unknown. The response can probably be seen as an acknowledgement that the request has been received.
+
+| Byte (len=1) |   0   |
+| ------------ | :---: |
+|              |   ?   |
+
+## Controller
+### Controller - Request
+| Byte (len=2) |   0   |       1        |
+| ------------ | :---: | :------------: |
+|              |   ?   | Charging State |
+
+#### Field description
+| Variable       | Description                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Charging State | if(Battery[Charging] == 1) Charging State = 1; if Ctrl received (Charging State = 1), motor can't start running. |
+
+### Controller - Response
+
+| Byte (len=10) |   0   |          1 |     2      |    3     |    4     |   5   |     6     |       7       |    8    |   9   |
+| ------------- | :---: | ---------: | :--------: | :------: | :------: | :---: | :-------: | :-----------: | :-----: | :---: |
+|               | Gear  | Current(H) | Current(L) | Speed(H) | Speed(L) | Temp  | ErrorCode | Unknown State | Parking |   ?   |
+
+#### Field description
+| Variable      | Description                                       |
+| ------------- | ------------------------------------------------- |
+| Gear          | change by (Mode switch on Right Switch)  =  1,2,3 |
+| Current       | 0.1A                                              |
+| Speed         | 0.028 km/h                                        |
+| Temp          | Ctrl Temp °C                                      |
+| ErrorCode     | See the Error Code Table for details              |
+| Unknown State | Something? = 2, will change Vehicle State to 0x10 |
+| Parking       | change by (Side Stand), Parking = 2,else = 1      |
+
+## Battery
+### Battery - Request
+| Byte (len=1) |   0   |
+| ------------ | :---: |
+|              |   ?   |
+
+### Battery - Response
+
+| Byte (len=10) |   0   |    1 |   2   |    3    |    4     |    5     |      6      |      7      |     8      |    9     |
+| ------------- | :---: | ---: | :---: | :-----: | :------: | :------: | :---------: | :---------: | :--------: | :------: |
+|               | Volt  |  Soc | Temp  | Current | Cycle(H) | Cycle(L) | Discycle(H) | Discycle(L) | Error Code | Charging |
+
+#### Field description
+| Variable  | Unit | Description                                                    |
+| --------- | ---- | -------------------------------------------------------------- |
+| Volt      | V    |                                                                |
+| Soc       | %    |                                                                |
+| Temp      | °C   |                                                                |
+| Current   | A    | if(Current<0)means discharging Current.                        |
+| Cycle     | -    | Number of loading cycles                                       |
+| Discycle  | -    | Number of discharging cycles                                   |
+| ErrorCode | -    | See the Error Code Table for details                           |
+| Charging  | -    | Charging = 1 , (Discharging = 4?,not observed.Cause BMS diff?) |
+
+## Error Codes
+
+| Byte | Bit | ErrorCode | Report Unit | Report Bit               | Other                                                                                    |
+| ---- | --- | --------- | ----------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| 6    | 0   | 99        | Ctrl        | Disconnect               |                                                                                          |
+| 6    | 1   | 98        | Ctrl        | Ctrl(6,1 \| 2 \| 4 \| 5) | over current?</br> motor blocking= bit5</br> under voltage = bit4</br> over temperature? |
+| 6    | 2   | 97        | Ctrl        | Ctrl(6,0)                |                                                                                          |
+| 6    | 3   | 96        | Ctrl        | Ctrl(6,0)                |                                                                                          |
+| 6    | 4   | 95        | Ctrl        | Ctrl(6,6)                |                                                                                          |
+| 6    | 5   | 94        | Battery     | Disconnect               |                                                                                          |
+| 6    | 6   | 93        | Battery     | Battery(8,1)             |                                                                                          |
+| 6    | 7   | 92        | Battery     | Battery(8,0)             |                                                                                          |
+| 7    | 0   | 91        | Battery     | Battery[Temp]>=3B(60°C)  |                                                                                          |
+| 7    | 1   | 90        | Battery     | Battery(8,2)             |                                                                                          |
+| 7    | 2   | 89        | Battery     | Battery(8,5)             |                                                                                          |
+| 7    | 3   | 88        | Battery     | Battery(8,7)             |                                                                                          |
+| 7    | 4   | 87        | X           |                          |                                                                                          |
+| 7    | 5   | 86        | X           |                          |                                                                                          |
 
 *Ctrl(1,2)means the bit is at Ctrl pdu byte 1,bit 2
+
+
+## Testing Method
+The described methods here where from @linshuweitw, who intensively tested the communication on the bike. Testing included but was not limited to the following approaches:
+
+### Unplugging and re-plugging physical wiring:
+Dynamically unplug and re-plug the RS485 physical wiring to test the system's response during communication interruptions and recovery.
+
+### Removing components and simulating communication packets:
+Remove a component and use a simulation tool to generate communication packets for the removed component. Test how the other components react to the simulated packets.
+
+### Operating the vehicle and monitoring packets:
+Operate the vehicle (e.g., accelerate, decelerate) and monitor the RS485 communication data to verify that the packets correspond to changes in the vehicle’s status.
+
+### Triggering vehicle status via external input:
+Use external devices (such as controlling the power supply to replace the battery) to simulate specific vehicle conditions, such as triggering undervoltage, and monitor the system’s response.
 
 ## Additional notes
 As @pervolianinen stated in https://github.com/stprograms/SuperSoco485Monitor/issues/2#issuecomment-1676308814, this is a generic protocol that is used in all Lingbo controllers. Using specific hardware converters, the monitor application can be use on these interfaces too. For CAN, this would also need enhancement in how the data is extracted.
