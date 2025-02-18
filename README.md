@@ -193,7 +193,7 @@ Temperature level of the controller displayed on the speedometer (5). This value
 ```c#
 // CtrlTempDisplay: Value send to the speedometer
 // Ctrl[temp]: Temperature value received from controller
-CtlTempDisplay = Ctrl[temp] / 20;
+CtrlTempDisplay = Ctrl[temp] / 20;
 ```
 
 ##### Remaining Range
