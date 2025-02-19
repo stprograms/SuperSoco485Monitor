@@ -143,9 +143,9 @@ The following chapter holds the list of telegrams that are (partly) decoded. Lik
 ### Speedometer - Request
 This is a request actively send from the master to the speedometer. It holds information to be displayed on the speedometer itself.
 
-| Byte (len=14) |   0   |           1            |      2       |        3        |   4   |   5   |    6     |    7     |       8       |      9      |        10         |        11         |  12   |       13        |
-| ------------- | :---: | :--------------------: | :----------: | :-------------: | :---: | :---: | :------: | :------: | :-----------: | :---------: | :---------------: | :---------------: | :---: | :-------------: |
-|               |  Soc  | Controller<br/>Current | SpeedDisplay | Controller Temp |   ?   |   ?   | Errcode0 | Errcode1 | Vehicle State | GearDisplay | Speed From Ctrl H | Speed From Ctrl L |   ?   | Remaining Range |
+| Byte (len=14) |   0   |      1      |      2       |        3        |   4   |   5    |    6     |    7     |       8       |      9      |        10         |        11         |  12   |       13        |
+| ------------- | :---: | :---------: | :----------: | :-------------: | :---: | :----: | :------: | :------: | :-----------: | :---------: | :---------------: | :---------------: | :---: | :-------------: |
+|               |  Soc  | CtrlCurrent | SpeedDisplay | CtrlTempDisplay | Hour  | Minute | Errcode0 | Errcode1 | Vehicle State | GearDisplay | Speed From Ctrl H | Speed From Ctrl L |   ?   | Remaining Range |
 
 #### Field description
 | Variable        | Description                            | Unit | Range                    |                                                                                                      |
@@ -154,6 +154,8 @@ This is a request actively send from the master to the speedometer. It holds inf
 | CtrlCurrent     | Current taken by the engine controller | 2.5A | 0x00 - 0x19 (0 ~ 30A)    | [Additional info](#ctlrcurrent)                                                                      |
 | SpeedDisplay    | Speed to display                       | km/h | 0 - 127(estimated value) | [Additional info](#speeddisplay)                                                                     |
 | CtrlTempDisplay | Temperature level of Controller        | -    | 0 - 9                    | [Additional info](#ctrltempdisplay)                                                                  |
+| Hour            | Current Hour in localtime              | -    | 0 - 23                   |                                                                                                      |
+| Minute          | Current Minute in localtime            | -    | 0 - 59                   |                                                                                                      |
 | Errcode         | Error code to display                  | -    | -                        | See the [Error Code Table](#error-codes) for details                                                 |
 | Vehicle State   | State of the vehicle                   | -    | -                        | Charging = 4, Parking = 1, else = 0, *Something* = 10 . *Something* related to Ctrl[Unknown state] . |
 | GearDisplay     | Selected gear                          | -    | 0 - 3                    | Values > 3 will not be displayed                                                                     |
