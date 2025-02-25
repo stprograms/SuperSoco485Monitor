@@ -1,4 +1,4 @@
-[![.NET Workflow for test building](https://github.com/stprograms/SuperSoco485Monitor/actions/workflows/build.yml/badge.svg)](https://github.com/stprograms/SuperSoco485Monitor/actions/workflows/build.yml)
+[![.NET Unit Test](https://github.com/stprograms/SuperSoco485Monitor/actions/workflows/dotnet.yml/badge.svg)](https://github.com/stprograms/SuperSoco485Monitor/actions/workflows/dotnet.yml)
 
 # SuperSoco485Monitor
 C# Application to monitor the communication on the internal RS485 Bus on SuperSoco Motorcycles
