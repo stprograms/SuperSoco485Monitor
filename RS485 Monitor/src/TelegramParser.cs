@@ -132,7 +132,7 @@ public class TelegramParser
     /// <summary>
     /// Parse the given file
     /// </summary>
-    /// <param name="filePath"></param> 
+    /// <param name="filePath"></param>
     public void ParseFile(string filePath)
     {
         FileInfo info = new(filePath);
@@ -199,28 +199,23 @@ public class TelegramParser
             return null;
         }
 
-        // Check if we can convert 
-        if ( tg.Type == BaseTelegram.TelegramType.READ_RESPONSE)
+        // Define known telegrams
+        Dictionary<UInt16, Type> knownTelegrams = new()
         {
-            if (tg.Source == 0xAA && tg.Destination == 0x5A && tg.PDU.Length == 10)
-            {
-                tg = new BatteryStatus(tg);
-            }
-            else if (tg.Source == 0xAA && tg.Destination == 0xDA && tg.PDU.Length == 10)
-            {
-                tg = new ECUStatus(tg);
-            }
-        }
+            {ControllerRequest.TELEGRAM_ID, typeof(ControllerRequest) },
+            {ControllerResponse.TELEGRAM_ID, typeof(ControllerResponse) },
+            {BatteryRequest.TELEGRAM_ID, typeof(BatteryRequest) },
+            {BatteryResponse.TELEGRAM_ID, typeof(BatteryResponse) },
+            {SpeedometerRequest.TELEGRAM_ID, typeof(SpeedometerRequest) },
+            {SpeedometerResponse.TELEGRAM_ID, typeof(SpeedometerResponse) },
+        };
 
-        else if (tg.Type == BaseTelegram.TelegramType.READ_REQUEST)
+        // try to fetch the special telegram type
+        if (knownTelegrams.TryGetValue(tg.Id, out Type? specialType))
         {
-            if (tg.Source == 0xBA && tg.Destination == 0xAA && tg.PDU.Length == GSMStatus.RAW_DATA_LEN)
-            {
-                tg = new GSMStatus(tg);
-            }
+            tg = (BaseTelegram?)Activator.CreateInstance(specialType, [tg]);
         }
 
         return tg;
     }
-
 }

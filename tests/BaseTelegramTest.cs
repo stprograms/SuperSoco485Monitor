@@ -10,7 +10,7 @@ public class BaseTelegramTest
 
         BaseTelegram telegram = new(raw);
 
-        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.READ_RESPONSE));
+        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.RESPONSE));
         Assert.That(telegram.Destination, Is.EqualTo(0xDA));
         Assert.That(telegram.Source, Is.EqualTo(0xAA));
         Assert.That(telegram.Valid, Is.EqualTo(true));
@@ -23,7 +23,7 @@ public class BaseTelegramTest
 
         BaseTelegram telegram = new(raw);
 
-        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.READ_REQUEST));
+        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.REQUEST));
         Assert.That(telegram.Destination, Is.EqualTo(0xDA));
         Assert.That(telegram.Source, Is.EqualTo(0xAA));
         Assert.That(telegram.Valid, Is.EqualTo(true));
@@ -36,7 +36,7 @@ public class BaseTelegramTest
 
         BaseTelegram telegram = new(raw);
 
-        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.READ_RESPONSE));
+        Assert.That(telegram.Type, Is.EqualTo(BaseTelegram.TelegramType.RESPONSE));
         Assert.That(telegram.Destination, Is.EqualTo(0xDA));
         Assert.That(telegram.Source, Is.EqualTo(0xAA));
         Assert.That(telegram.Valid, Is.EqualTo(false));
