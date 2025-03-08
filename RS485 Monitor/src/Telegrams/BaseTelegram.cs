@@ -201,7 +201,7 @@ public class BaseTelegram : IEquatable<BaseTelegram>
 
         // Check end telegram value
         int pos_end_tag = MIN_DATA_LEN - 1 + pduLen;
-        if (rawData.Length < pos_end_tag || rawData[pos_end_tag] != END_TELEGRAM)
+        if (rawData.Length < (pos_end_tag + 1) || rawData[pos_end_tag] != END_TELEGRAM)
         {
             log.Error("RawData does not hold Endtag");
             throw new ArgumentException("Raw data does not contain End tag");
@@ -250,7 +250,11 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// <returns></returns>
     public bool Equals(BaseTelegram? other)
     {
-        return Array.Equals(this.Raw, other?.Raw);
+        if (other == null)
+        {
+            return false;
+        }
+        return this.Raw.SequenceEqual(other.Raw);
     }
 
 }
