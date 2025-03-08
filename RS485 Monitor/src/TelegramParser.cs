@@ -38,6 +38,7 @@ public class TelegramParser
         public TelegramArgs(BaseTelegram t)
         {
             Telegram = t;
+            Telegram.Timestamp = DateTime.Now;
         }
     }
 
@@ -200,7 +201,7 @@ public class TelegramParser
         }
 
         // Check if we can convert 
-        if ( tg.Type == BaseTelegram.TelegramType.READ_RESPONSE)
+        if (tg.Type == BaseTelegram.TelegramType.READ_RESPONSE)
         {
             if (tg.Source == 0xAA && tg.Destination == 0x5A && tg.PDU.Length == 10)
             {

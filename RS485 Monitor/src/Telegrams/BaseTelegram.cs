@@ -57,6 +57,11 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// </summary>
     public TelegramType Type { get => (TelegramType)Start; }
 
+    /// <summary>
+    /// Timestamp of the telegram
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+
     #endregion
 
     #region Constants
