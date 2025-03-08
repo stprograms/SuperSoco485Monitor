@@ -66,10 +66,9 @@ public class ControllerResponse : BaseTelegram
     public ParkStatus Parking {
         get {
             ParkStatus status = ParkStatus.PARKING_UNKNOWN;
-            try {
+            if (Enum.IsDefined(typeof(ParkStatus), (int)PDU[POS_PARKING]))
+            {
                 status = (ParkStatus)PDU[POS_PARKING];
-            } catch (Exception e) {
-                log.Error(e, "Error parsing parking status");
             }
             return status;
         }
@@ -107,6 +106,7 @@ public class ControllerResponse : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return $"Controller Response: Mode {Gear}, {Current}A, {Speed}km/h, {Temperature}°C, Parking: {Parking}";
+        string current_invariant = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{Current}");
+        return $"Controller Response: Mode {Gear}, {current_invariant}A, {Speed}km/h, {Temperature}°C, Parking: {Parking}";
     }
 }
