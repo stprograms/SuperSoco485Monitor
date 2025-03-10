@@ -2,10 +2,10 @@ using System.Reflection.Metadata.Ecma335;
 using NLog;
 
 /// <summary>
-/// Specialization of the BaseTelegram class that extracts the information 
+/// Specialization of the BaseTelegram class that extracts the information
 /// of BatteryStatus
 /// </summary>
-public class BatteryStatus : BaseTelegram
+public class BatteryResponse : BaseTelegram
 {
     /// <summary>
     /// Internal logging object
@@ -73,7 +73,7 @@ public class BatteryStatus : BaseTelegram
     /// <summary>
     /// Position of charge / discharge current in PDU
     /// </summary>
-    private const byte POS_CHARGE = 3;
+    private const byte POS_CURRENT = 3;
     /// <summary>
     /// Positiion of high byte of number of charging cycles in PDU
     /// </summary>
@@ -91,13 +91,17 @@ public class BatteryStatus : BaseTelegram
     /// </summary>
     private const byte POS_DISCYCLE_L = 7;
     /// <summary>
-    /// Position of VBreaker information
+    /// Position of error information
     /// </summary>
-    private const byte POS_VBREAKER= 8;
+    private const byte POS_ERROR_CODE= 8;
     /// <summary>
     /// Position of charging information in PDU
     /// </summary>
     private const byte POS_CHARGING = 9;
+
+    private const byte SOURCE = (byte)Units.BATTERY;
+    private const byte DESTINATION = (byte)Units.ECU;
+    public const UInt16 TELEGRAM_ID = DESTINATION << 8 | SOURCE;
     #endregion
 
     #region Properties
@@ -114,13 +118,13 @@ public class BatteryStatus : BaseTelegram
     /// </summary>
     public sbyte Temperature { get => (sbyte)PDU[POS_TEMP]; }
     /// <summary>
-    /// Current VBreaker status
+    /// error code
     /// </summary>
-    public VBreakerStatus VBreaker{ get => (VBreakerStatus)PDU[POS_VBREAKER]; }
+    public VBreakerStatus VBreaker{ get => (VBreakerStatus)PDU[POS_ERROR_CODE]; }
     /// <summary>
-    /// Current Charge or Discharge in Amps
+    /// Charge or discharge current in Amps
     /// </summary>
-    public sbyte Charge { get => (sbyte)PDU[POS_CHARGE]; }
+    public sbyte Current { get => (sbyte)PDU[POS_CURRENT]; }
     /// <summary>
     /// Total number of charging cycles
     /// </summary>
@@ -151,12 +155,16 @@ public class BatteryStatus : BaseTelegram
     /// </summary>
     /// <param name="t">Raw telegram</param>
     /// <exception cref="ArgumentException">Raw data has an unexpected length</exception>
-    public BatteryStatus(BaseTelegram t)
+    public BatteryResponse(BaseTelegram t)
     : base(t)
     {
         if (t.PDU.Length != TELEGRAM_SIZE)
         {
             throw new ArgumentException($"Unexpected size of {t.PDU.Length}");
+        }
+        if (t.Source != SOURCE || t.Destination != DESTINATION)
+        {
+            throw new ArgumentException("Not a BatteryResponse telegram");
         }
     }
 
@@ -167,7 +175,7 @@ public class BatteryStatus : BaseTelegram
     public override string ToString()
     {
         log.Trace(base.ToString());
-        return  $"Battery Status: {Voltage}V, {SoC}%, {Temperature}°C, {Charge} Amp, " +
+        return  $"Battery Response: {Voltage}V, {SoC}%, {Temperature}°C, {Current} Amp, " +
                 $"Charged: {Cycles}x, Discharged: {DischargeCycles}x, VBreaker: {VBreaker}, " +
                 $"Activity: {Activity}, Charging: {Charging}";
     }
