@@ -307,10 +307,10 @@ Current fed into or taken from the battery. Values < 0 describe discharge of the
 | 6    | 3   | 96        | Ctrl        | Ctrl (6,0)                |                                                                                          |
 | 6    | 4   | 95        | Ctrl        | Ctrl (6,6)                |                                                                                          |
 | 6    | 5   | 94        | Battery     | Disconnect                |                                                                                          |
-| 6    | 6   | 93        | Battery     | Battery (8,1)             |                                                                                          |
-| 6    | 7   | 92        | Battery     | Battery (8,0)             |                                                                                          |
+| 6    | 6   | 93        | Battery     | Battery (8,1)             | charge current to high                                                                   |
+| 6    | 7   | 92        | Battery     | Battery (8,0)             | charging stopped                                                                         |
 | 7    | 0   | 91        | Battery     | Battery[Temp] >= 3B(60°C) |                                                                                          |
-| 7    | 1   | 90        | Battery     | Battery (8,2)             |                                                                                          |
+| 7    | 1   | 90        | Battery     | Battery (8,2)             | discharge current too high                                                               |
 | 7    | 2   | 89        | Battery     | Battery (8,5)             |                                                                                          |
 | 7    | 3   | 88        | Battery     | Battery (8,7)             |                                                                                          |
 | 7    | 4   | 87        | X           |                           |                                                                                          |
