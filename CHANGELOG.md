@@ -1,6 +1,18 @@
 # SuperSoco RS485 Monitor
 
 This file holds the Changelog of the project and all relevant changes.
+## 2.0.0
+This release holds a lot of adaptions. Most of the communication was decoded by
+@linshuweitw. The documentation was heavily adapted based on that. The application
+itself has been updated to dotnet 8.0 and is now using the new information
+
+## Modified
+- Updated documentation [#10](https://github.com/stprograms/SuperSoco485Monitor/issues/10)
+- Updated telegram parsing [#16](https://github.com/stprograms/SuperSoco485Monitor/issues/16)
+
+## Added
+- Introduced github actions [#12](https://github.com/stprograms/SuperSoco485Monitor/issues/12)
+- Introduced software unit tests [#17](https://github.com/stprograms/SuperSoco485Monitor/issues/17)
 
 ## 1.2.0
 ### Modified
