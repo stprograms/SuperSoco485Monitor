@@ -137,6 +137,11 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// </summary>
     public TelegramType Type { get => (TelegramType)RawType; }
 
+    /// <summary>
+    /// Timestamp when the telegram was received / created
+    /// </summary>
+    public DateTime TimeStamp { get; }
+
     #endregion
 
     /// <summary>
@@ -165,11 +170,15 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// Create a new base telegram based on the given raw data
     /// </summary>
     /// <param name="rawData">raw data of one telegram</param>
+    /// <param name="timestamp">
+    ///   Optional timestamp when the telegram was received. If it stays null,
+    ///   the current timestamp is used.
+    /// </param>
     /// <exception cref="ArgumentNullException">Raw data is null.</exception>
     /// <exception cref="ArgumentException">Raw data is too short.</exception>
     /// <exception cref="ArgumentException">Invalid data length in the raw data.</exception>
     /// <exception cref="ArgumentException">Raw data does not contain End tag.</exception>
-    public BaseTelegram(byte[] rawData)
+    public BaseTelegram(byte[] rawData, DateTime? timestamp = null)
     {
         // Basic validation
         ArgumentNullException.ThrowIfNull(rawData);
@@ -206,6 +215,9 @@ public class BaseTelegram : IEquatable<BaseTelegram>
             log.Error("RawData does not hold Endtag");
             throw new ArgumentException("Raw data does not contain End tag");
         }
+
+        // Set timestamp
+        TimeStamp = timestamp ?? DateTime.Now;
     }
 
     /// <summary>

@@ -114,4 +114,26 @@ public class BaseTelegramTest
 
         Assert.That(telegram1.Equals(telegram2), Is.EqualTo(false));
     }
+
+    [Test]
+    public void AutomaticTimeStampCreated()
+    {
+        byte[] raw = [0xB6, 0x6B, 0xAA, 0xDA, 0x0A, 0x02, 0x00, 0x04, 0x00, 0x00, 0x13, 0x00, 0x00, 0x02, 0x01, 0x1C, 0x0D];
+
+        BaseTelegram telegram = new(raw);
+        var now = DateTime.Now;
+
+        Assert.That(telegram.TimeStamp.Ticks, Is.EqualTo(now.Ticks).Within(300));
+    }
+
+    [Test]
+    public void ManualTimeStampCreated()
+    {
+        byte[] raw = [0xB6, 0x6B, 0xAA, 0xDA, 0x0A, 0x02, 0x00, 0x04, 0x00, 0x00, 0x13, 0x00, 0x00, 0x02, 0x01, 0x1C, 0x0D];
+        DateTime timestamp = new(2021, 12, 24, 12, 0, 0);
+
+        BaseTelegram telegram = new(raw, timestamp);
+
+        Assert.That(telegram.TimeStamp, Is.EqualTo(timestamp));
+    }
 }
