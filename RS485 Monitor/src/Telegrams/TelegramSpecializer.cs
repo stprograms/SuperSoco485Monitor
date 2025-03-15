@@ -32,7 +32,7 @@ namespace RS485Monitor.Telegrams
         /// </summary>
         /// <param name="telegram"></param>
         /// <returns></returns>
-        public static BaseTelegram specialize(BaseTelegram telegram)
+        public static BaseTelegram Specialize(BaseTelegram telegram)
         {
             // try to fetch the special telegram type
             if (knownTelegrams.TryGetValue(telegram.Id, out Type? specialType))

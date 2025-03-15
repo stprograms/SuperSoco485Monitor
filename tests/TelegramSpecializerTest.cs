@@ -10,9 +10,10 @@ public class TelegramSpecializerTest
     {
         byte[] raw = [0xC5, 0x5C, 0xAA, 0xBA, 0x01, 0x00, 0x00, 0x0D];
         BaseTelegram telegram = new BaseTelegram(raw);
-        BaseTelegram specializedTelegram = TelegramSpecializer.specialize(telegram);
+        BaseTelegram specializedTelegram = TelegramSpecializer.Specialize(telegram);
 
         Assert.That(specializedTelegram, Is.InstanceOf<SpeedometerResponse>());
+        Assert.That(specializedTelegram, Is.EqualTo(telegram));
     }
 
     [Test]
@@ -20,7 +21,7 @@ public class TelegramSpecializerTest
     {
         byte[] raw = [0xC5, 0x5C, 0xBB, 0xCC, 0x01, 0x00, 0x00, 0x0D];
         BaseTelegram telegram = new BaseTelegram(raw);
-        BaseTelegram specializedTelegram = TelegramSpecializer.specialize(telegram);
+        BaseTelegram specializedTelegram = TelegramSpecializer.Specialize(telegram);
 
         Assert.That(specializedTelegram, Is.InstanceOf<BaseTelegram>());
     }
