@@ -201,7 +201,7 @@ public class TelegramParser
         }
 
         // try to specialize the telegram
-        tg = TelegramSpecializer.specialize(tg);
+        tg = TelegramSpecializer.Specialize(tg);
         return tg;
     }
 }
