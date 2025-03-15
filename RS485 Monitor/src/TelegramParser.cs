@@ -1,4 +1,5 @@
 using NLog;
+using RS485Monitor.Telegrams;
 
 /// <summary>
 /// Class extracting telegrams from byte streams.
@@ -199,23 +200,8 @@ public class TelegramParser
             return null;
         }
 
-        // Define known telegrams
-        Dictionary<UInt16, Type> knownTelegrams = new()
-        {
-            {ControllerRequest.TELEGRAM_ID, typeof(ControllerRequest) },
-            {ControllerResponse.TELEGRAM_ID, typeof(ControllerResponse) },
-            {BatteryRequest.TELEGRAM_ID, typeof(BatteryRequest) },
-            {BatteryResponse.TELEGRAM_ID, typeof(BatteryResponse) },
-            {SpeedometerRequest.TELEGRAM_ID, typeof(SpeedometerRequest) },
-            {SpeedometerResponse.TELEGRAM_ID, typeof(SpeedometerResponse) },
-        };
-
-        // try to fetch the special telegram type
-        if (knownTelegrams.TryGetValue(tg.Id, out Type? specialType))
-        {
-            tg = (BaseTelegram?)Activator.CreateInstance(specialType, [tg]);
-        }
-
+        // try to specialize the telegram
+        tg = TelegramSpecializer.specialize(tg);
         return tg;
     }
 }
