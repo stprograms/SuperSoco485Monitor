@@ -8,7 +8,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/RS485 Monitor/bin/Debug/net8.0/RS485 Monitor.dll",
-            "args": [""],
+            "args": ["-w"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

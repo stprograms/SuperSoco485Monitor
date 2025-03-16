@@ -2,13 +2,11 @@
 
 using System.IO.Ports;
 using NLog;
-using System.Diagnostics;
-using System.Text;
 
 /// <summary>
 /// Class reading data from the serial interface and parsing using the TelegramParser.
 /// </summary>
-public class SerialMonitor
+public class SerialMonitor : IDisposable
 {
     #region Private Members
     /// <summary>
@@ -56,7 +54,7 @@ public class SerialMonitor
     /// </summary>
     private const int BAUDRATE = 9600;
     /// <summary>
-    /// Maximum size of the buffer / chunks 
+    /// Maximum size of the buffer / chunks
     /// </summary>
     private const int BUFFER_SIZE = 256;
     #endregion
@@ -85,11 +83,12 @@ public class SerialMonitor
         parser = new();
         parser.NewTelegram += (o, t) =>
         {
-            BaseTelegram? tel = (t as TelegramParser.TelegramArgs)?.Telegram;
+            var args = t as TelegramParser.TelegramArgs;
 
-            if (tel != null && TelegramReceived != null)
+            if (args !=null)
             {
-                TelegramReceived.Invoke(this, new TelegramParser.TelegramArgs(tel));
+                // Forward the telegram
+                TelegramReceived?.Invoke(this, args);
             }
         };
     }
@@ -111,7 +110,7 @@ public class SerialMonitor
             }
             buffer = new byte[bytesToRead];
 
-            // Read data 
+            // Read data
             int readBytes = port.Read(buffer, 0, bytesToRead);
 
             if (readBytes != bytesToRead)
@@ -162,5 +161,10 @@ public class SerialMonitor
         rawStream?.Close();
 
         Running = false;
+    }
+
+    public void Dispose()
+    {
+        Stop();
     }
 }
