@@ -2,6 +2,10 @@
 using NLog.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using CommandLine;
+using RS485_Monitor.Utils.Storage;
+using System.Runtime.CompilerServices;
+
+const string FILE_EXTENSION = ".ssm";
 
 // Configuration
 var config = new ConfigurationBuilder()
@@ -10,25 +14,26 @@ var config = new ConfigurationBuilder()
 
 var sec = config.GetSection("NLog");
 LogManager.Configuration = new NLogLoggingConfiguration(sec);
-NLog.Logger log = LogManager.GetCurrentClassLogger();
+Logger log = LogManager.GetCurrentClassLogger();
 
 Configuration cfg = new(config.GetSection("Monitor"));
 
-// Commandline parser
-String? parseFile = null;
+// command line parser
+string? parseFile = null;
 bool replayToSerial = false;
 bool groupOutput = false;
-
+bool writeToFile = false;
 
 var result = Parser.Default.ParseArguments<CmdOptions>(args)
-    .WithParsed<CmdOptions>(o =>
+    .WithParsed(o =>
     {
         if (o.InputFile != null)
         {
             parseFile = o.InputFile;
         }
-        replayToSerial = o.replayOnSerial;
-        groupOutput = o.groupOutput;
+        replayToSerial = o.ReplayOnSerial;
+        groupOutput = o.GroupOutput;
+        writeToFile = o.WriteToFile;
     }
     );
 
@@ -40,15 +45,7 @@ if (result.Tag == ParserResultType.NotParsed)
 }
 
 // Configure output
-IUserVisualizable printer;
-if (groupOutput)
-{
-    printer = new ConsolePrinter();
-}
-else
-{
-    printer = new LogPrinter();
-}
+IUserVisualizable printer = groupOutput ? new ConsolePrinter() : new LogPrinter();
 
 // Select execution
 if (parseFile != null)
@@ -63,6 +60,83 @@ else
     StartMonitor(cfg);
 }
 
+/// <summary>
+/// Start the serial monitor
+/// </summary>
+void StartMonitor(Configuration cfg)
+{
+    // Semaphore for ending the monitor
+    Semaphore endMonitor = new(0, 1);
+
+    // Register CTRL+C
+    Console.CancelKeyPress += new ConsoleCancelEventHandler((sender, args) =>
+    {
+        log.Info("Exiting ...");
+
+        // Set cancel to true to prevent default CTRL+C behaviour
+        args.Cancel = true;
+
+        // release semaphore
+        endMonitor.Release();
+    });
+
+    log.Info($"Starting Serial Monitor on port {cfg.ComPort}");
+
+    // create telegram exporter
+    TelegramExporter? exporter = null;
+    if (writeToFile)
+    {
+        FileInfo? outputFile = null;
+        string filename = DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_telegram" + FILE_EXTENSION;
+
+        // Determine full output file path
+        if (cfg.OutputDir != null)
+        {
+            outputFile = new(cfg.OutputDir + "/" + filename);
+        }
+        else
+        {
+            outputFile = new(filename);
+        }
+
+        // create exporter
+        exporter = new(outputFile.OpenWrite());
+    }
+
+    // Start serial monitor on the given port
+    using (SerialMonitor monitor = new(cfg.ComPort, cfg.WriteRawData))
+    {
+        if (cfg.OutputDir != null)
+        {
+            monitor.OutputDir = cfg.OutputDir;
+        }
+        monitor.TelegramReceived += (o, e) =>
+        {
+            // Print the received telegram
+            printer.PrintTelegram(e.Telegram);
+            exporter?.PushTelegram(e.Telegram);
+        };
+
+        // Start reading monitor
+        try
+        {
+            monitor.Start();
+        }
+        catch (IOException ex)
+        {
+            log.Fatal(ex, "Could not start monitor");
+            return;
+        }
+
+        // Wait for CTRL+C
+        endMonitor.WaitOne();
+    }
+    log.Info("Monitor stopped");
+
+    // close exporter
+    exporter?.Dispose();
+}
+
 
 /// <summary>
 /// Read a local file and parse it
@@ -72,7 +146,7 @@ async Task ReadLocalFile(String file)
     TelegramParser parser = new();
     TelegramPlayer player = new(cfg.ReplayCycle);
 
-    // Register new telegram handler 
+    // Register new telegram handler
     parser.NewTelegram += (sender, evt) =>
     {
         BaseTelegram telegram = ((TelegramParser.TelegramArgs)evt).Telegram;
@@ -104,49 +178,6 @@ async Task ReadLocalFile(String file)
     printer.Flush();
 }
 
-
-/// <summary>
-/// Start the serial monitor
-/// </summary>
-void StartMonitor(Configuration cfg)
-{
-    log.Info($"Starting Serial Monitor on port {cfg.ComPort}");
-
-    SerialMonitor monitor = new(cfg.ComPort, cfg.WriteRawData);
-    if (cfg.OutputDir != null)
-    {
-        monitor.OutputDir = cfg.OutputDir;
-    }
-    monitor.TelegramReceived += (o, e) =>
-    {
-        // Print the received telegram
-        printer.PrintTelegram(e.Telegram);
-    };
-
-    // Register CTRL+C
-    Console.CancelKeyPress += delegate
-    {
-        log.Info("Exiting ...");
-        monitor.Stop();
-    };
-
-    // Start reading monitor
-    try
-    {
-        monitor.Start();
-    }
-    catch (System.IO.IOException ex)
-    {
-        log.Fatal(ex, "Could not start monitor");
-        return;
-    }
-
-    // Endless loop
-    while (monitor.Running)
-    {
-        Thread.Sleep(10);
-    }
-}
 
 
 /// <summary>
