@@ -13,6 +13,8 @@ itself has been updated to dotnet 8.0 and is now using the new information
 ## Added
 - Introduced github actions [#12](https://github.com/stprograms/SuperSoco485Monitor/issues/12)
 - Introduced software unit tests [#17](https://github.com/stprograms/SuperSoco485Monitor/issues/17)
+- Introduced timestamp for telegrams [#22](https://github.com/stprograms/SuperSoco485Monitor/issues/22)
+- Introduced storing of telegrams with timestamp [#23](https://github.com/stprograms/SuperSoco485Monitor/issues/23)
 
 ## 1.2.0
 ### Modified
