@@ -16,7 +16,7 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// <summary>
     /// Maximum supported data length
     /// </summary>
-    private const byte MAX_DATA_LEN = 32;
+    public const byte MAX_PDU_LEN = 32;
 
     /// <summary>
     /// Minimum length of a telegram. This contains the following data:
@@ -30,9 +30,14 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     private const byte MIN_DATA_LEN = 7;
 
     /// <summary>
+    /// Maximum expected size of a raw telegram including PDU, header and checksum
+    /// </summary>
+    public const byte MAX_RAW_DATA_LEN = MAX_PDU_LEN + MIN_DATA_LEN;
+
+    /// <summary>
     /// End byte of the telegram
     /// </summary>
-    private const byte END_TELEGRAM = 0x0D;
+    public const byte END_TELEGRAM = 0x0D;
 
     /// <summary>
     /// Offset of the high Byte of the the telegram type
@@ -159,11 +164,16 @@ public class BaseTelegram : IEquatable<BaseTelegram>
     /// <param name="c">Object to copy from</param>
     protected BaseTelegram(BaseTelegram c)
     {
+        // Copy raw data
         this.Raw = new byte[c.Raw.Length];
         Array.Copy(c.Raw, this.Raw, Raw.Length);
 
+        // Copy PDU
         this.PDU = new byte[c.PDU.Length];
         Array.Copy(c.PDU, this.PDU, this.PDU.Length);
+
+        // Copy timestamp
+        this.TimeStamp = c.TimeStamp;
     }
 
     /// <summary>
@@ -193,9 +203,9 @@ public class BaseTelegram : IEquatable<BaseTelegram>
 
         // fetch user data
         byte pduLen = rawData[POS_LEN];
-        if (pduLen > MAX_DATA_LEN)
+        if (pduLen > MAX_PDU_LEN)
         {
-            throw new ArgumentException($"Invalid data len {pduLen}. Max supported: {MAX_DATA_LEN}");
+            throw new ArgumentException($"Invalid data len {pduLen}. Max supported: {MAX_PDU_LEN}");
         }
 
         // copy user data to PDU array
@@ -266,7 +276,7 @@ public class BaseTelegram : IEquatable<BaseTelegram>
         {
             return false;
         }
-        return this.Raw.SequenceEqual(other.Raw);
+        return this.Raw.SequenceEqual(other.Raw) && this.TimeStamp == other.TimeStamp;
     }
 
 }
