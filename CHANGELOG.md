@@ -16,6 +16,7 @@ itself has been updated to dotnet 8.0 and is now using the new information
 - Introduced timestamp for telegrams [#22](https://github.com/stprograms/SuperSoco485Monitor/issues/22)
 - Introduced storing of telegrams with timestamp [#23](https://github.com/stprograms/SuperSoco485Monitor/issues/23)
 - Showing offset to previous telegram in time view [#24](https://github.com/stprograms/SuperSoco485Monitor/issues/24)
+- Showing offset to previous telegram in grouped view [#25](https://github.com/stprograms/SuperSoco485Monitor/issues/25)
 
 ## 1.2.0
 ### Modified
