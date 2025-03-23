@@ -21,6 +21,10 @@ public class ConsolePrinter : IUserVisualizable
         /// Reference to the telegram
         /// </summary>
         public BaseTelegram Telegram { get; set; }
+        /// <summary>
+        /// Offset to the previous telegram of the same type
+        /// </summary>
+        public TimeSpan TimeOffset { get; set; }
 
         /// <summary>
         /// Create new telegram info based on the given BaseTelegram
@@ -30,6 +34,7 @@ public class ConsolePrinter : IUserVisualizable
         {
             Count = 1;
             Telegram = t;
+            TimeOffset = TimeSpan.Zero;
         }
     };
 
@@ -113,25 +118,21 @@ public class ConsolePrinter : IUserVisualizable
     public void PrintTelegram(BaseTelegram tg)
     {
         // Generate key
-        UInt16 key = (UInt16)((tg.Source << 8) + tg.Destination);
+        UInt16 key = tg.Id;
 
         lock (telegrams)
         {
-
-            if (!telegrams.ContainsKey(key))
+            if (telegrams.TryGetValue(key, out TelegramInfo? value))
             {
-                // New telegram
-                telegrams[key] = new TelegramInfo(tg);
+                // Update existing telegramtype
+                value.TimeOffset = tg.TimeStamp - value.Telegram.TimeStamp;
+                value.Telegram = tg;
+                value.Count++;
             }
             else
             {
-                // Update telegram
-                if (!telegrams[key].Telegram.Equals(tg))
-                {
-                    telegrams[key].Telegram = tg;
-                }
-                // UPdate entry
-                telegrams[key].Count++;
+                // New telegram type, create new entry
+                telegrams[key] = new TelegramInfo(tg);
             }
         }
 
@@ -195,10 +196,10 @@ public class ConsolePrinter : IUserVisualizable
                 }
 
                 // Print the telegrams
-                foreach (var telegram in telegrams)
+                foreach (var value in telegrams.Values)
                 {
-                    BaseTelegram t = telegram.Value.Telegram;
-                    Console.WriteLine($"({telegram.Value.Count:D3}) {t.ToStringDetailed()}");
+                    BaseTelegram t = value.Telegram;
+                    Console.WriteLine($"({value.Count:D3}) [{value.TimeOffset.TotalMilliseconds,5:N0} ms] {t.ToStringDetailed()}");
                 }
             }
 
@@ -210,14 +211,14 @@ public class ConsolePrinter : IUserVisualizable
     /// <summary>
     /// Clear the screen and print the header
     /// </summary>
-    private void PrintHeader()
+    private static void PrintHeader()
     {
         try
         {
             Console.CursorVisible = false;
             Console.Clear();
-            Console.WriteLine("(Count) Raw Data -> Parsed Data");
-            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("(Count) [Offset] Raw Data -> Parsed Data");
+            Console.WriteLine("----------------------------------------");
         }
         catch (System.IO.IOException)
         {
